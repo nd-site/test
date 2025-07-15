@@ -44,47 +44,56 @@
   <button onclick="downloadQR()">Tải ảnh</button>
   <div id="qr-code"></div>
 
-  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
   <script>
-    let qr;
+    let qrCanvas; // giữ lại canvas để dùng khi tải
 
     function generateQRCode() {
       const text = document.getElementById("text").value.trim();
       const qrContainer = document.getElementById("qr-code");
-      qrContainer.innerHTML = ""; // Xóa QR cũ
+      qrContainer.innerHTML = ""; // Xoá cũ
 
       if (!text) {
         alert("Vui lòng nhập nội dung.");
         return;
       }
 
-      qr = new QRCode(qrContainer, {
-        text: text,
+      // Tạo canvas
+      qrCanvas = document.createElement("canvas");
+      QRCode.toCanvas(qrCanvas, text, {
         width: 256,
-        height: 256,
-        colorDark : "#000000",
-        colorLight : "#ffffff",
-        correctLevel : QRCode.CorrectLevel.H
+        margin: 1,
+        color: {
+          dark: '#000000',
+          light: '#ffffff'
+        }
+      }, function (error) {
+        if (error) {
+          console.error(error);
+          alert("Không thể tạo mã QR.");
+          return;
+        }
+        qrContainer.appendChild(qrCanvas);
       });
     }
 
     function downloadQR() {
-      const canvas = document.querySelector('#qr-code canvas');
-      if (!canvas) {
+      if (!qrCanvas) {
         alert("Bạn chưa tạo mã QR.");
         return;
       }
 
-      // Tạo canvas mới có viền bo tròn trắng
       const size = 300;
       const padding = 20;
       const radius = 24;
-      const newCanvas = document.createElement("canvas");
-      newCanvas.width = size;
-      newCanvas.height = size;
-      const ctx = newCanvas.getContext("2d");
 
-      // Nền trắng có bo tròn
+      // Tạo canvas phụ để bo tròn
+      const finalCanvas = document.createElement("canvas");
+      finalCanvas.width = size;
+      finalCanvas.height = size;
+      const ctx = finalCanvas.getContext("2d");
+
+      // Bo tròn nền trắng
       ctx.fillStyle = "#ffffff";
       ctx.beginPath();
       ctx.moveTo(radius, 0);
@@ -99,12 +108,12 @@
       ctx.closePath();
       ctx.fill();
 
-      // Vẽ QR vào giữa
-      ctx.drawImage(canvas, padding, padding, size - 2 * padding, size - 2 * padding);
+      // Vẽ mã QR lên giữa canvas
+      ctx.drawImage(qrCanvas, padding, padding, size - 2 * padding, size - 2 * padding);
 
-      // Tải ảnh
+      // Tải về ảnh PNG
       const link = document.createElement("a");
-      link.href = newCanvas.toDataURL("image/png");
+      link.href = finalCanvas.toDataURL("image/png");
       link.download = "qr-code.png";
       document.body.appendChild(link);
       link.click();
