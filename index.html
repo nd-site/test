@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Tạo mã QR</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    #qr-code {
+      margin-top: 20px;
+    }
+    input, button {
+      padding: 10px;
+      border: none;
+      border-radius: 8px;
+      margin: 5px;
+      font-size: 16px;
+    }
+    button {
+      background: #00c6ff;
+      color: white;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #0072ff;
+    }
+  </style>
+</head>
+<body>
+  <h1>Tạo mã QR</h1>
+  <input type="text" id="text" placeholder="Nhập nội dung..." />
+  <button onclick="generateQRCode()">Tạo mã QR</button>
+  <button onclick="downloadQR()">Tải ảnh</button>
+  <div id="qr-code"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/qrcodejs/qrcode.min.js"></script>
+  <script>
+    let qr;
+
+    function generateQRCode() {
+      const text = document.getElementById("text").value.trim();
+      const qrContainer = document.getElementById("qr-code");
+      qrContainer.innerHTML = ""; // xóa QR cũ
+
+      if (!text) {
+        alert("Vui lòng nhập nội dung.");
+        return;
+      }
+
+      qr = new QRCode(qrContainer, {
+        text: text,
+        width: 256,
+        height: 256,
+        colorDark : "#000000",
+        colorLight : "#ffffff",
+        correctLevel : QRCode.CorrectLevel.H
+      });
+    }
+
+    function downloadQR() {
+      const img = document.querySelector('#qr-code img');
+      if (!img) {
+        alert("Bạn chưa tạo mã QR.");
+        return;
+      }
+
+      const link = document.createElement('a');
+      link.href = img.src;
+      link.download = 'qr-code.png';
+      link.click();
+    }
+  </script>
+</body>
+</html>
