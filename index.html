@@ -51,7 +51,7 @@
     function generateQRCode() {
       const text = document.getElementById("text").value.trim();
       const qrContainer = document.getElementById("qr-code");
-      qrContainer.innerHTML = ""; // xóa QR cũ
+      qrContainer.innerHTML = ""; // Xóa QR cũ
 
       if (!text) {
         alert("Vui lòng nhập nội dung.");
@@ -70,15 +70,25 @@
 
     function downloadQR() {
       const img = document.querySelector('#qr-code img');
-      if (!img) {
+      const canvas = document.querySelector('#qr-code canvas');
+
+      let dataUrl = "";
+
+      if (img && img.src.startsWith("data:image")) {
+        dataUrl = img.src;
+      } else if (canvas) {
+        dataUrl = canvas.toDataURL("image/png");
+      } else {
         alert("Bạn chưa tạo mã QR.");
         return;
       }
 
-      const link = document.createElement('a');
-      link.href = img.src;
-      link.download = 'qr-code.png';
+      const link = document.createElement("a");
+      link.href = dataUrl;
+      link.download = "qr-code.png";
+      document.body.appendChild(link); // Cần cho Safari
       link.click();
+      document.body.removeChild(link);
     }
   </script>
 </body>
