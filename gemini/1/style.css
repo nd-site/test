@@ -1,0 +1,124 @@
+/* Basic Reset and Font */
+body {
+    font-family: Arial, sans-serif; /* Use a clean, system font */
+    background-color: #f0f0f0; /* Light grey background for the desktop */
+    margin: 0;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+}
+
+/* 1. Browser Frame - The white window */
+.browser-frame {
+    width: 900px; /* Example size */
+    height: 600px; /* Example size */
+    background-color: #fff;
+    border-radius: 10px;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+    overflow: hidden; /* Important for the layout inside */
+}
+
+/* 2. Browser Header - The top bar with URL */
+.browser-header {
+    height: 40px;
+    background-color: #f7f7f7; /* Very light grey */
+    display: flex;
+    align-items: center;
+    padding: 0 10px;
+    border-bottom: 1px solid #eee;
+}
+
+.url-bar {
+    /* Styles for the URL text, you'd usually have a full address bar here */
+    color: #555;
+    font-size: 14px;
+    margin: 0 auto;
+}
+
+/* 3. Main Layout - Sidebar and Content */
+.main-layout {
+    display: flex;
+    height: calc(100% - 40px); /* Fill the rest of the height */
+}
+
+/* 4. Sidebar - Left column */
+.sidebar {
+    width: 280px; /* Specific width for the sidebar */
+    background: linear-gradient(180deg, #f0f5ff, #e6eeff); /* Light blue gradient background */
+    padding: 20px 0;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.logo-section {
+    padding: 0 20px 40px;
+    text-align: center;
+    /* Styles for the logo image/placeholder */
+}
+
+/* 5. Navigation Menu */
+.nav-menu {
+    width: 100%;
+}
+
+.nav-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 20px;
+    margin: 10px 20px;
+    text-decoration: none;
+    color: #333;
+    border-radius: 8px;
+    transition: background-color 0.2s;
+    font-weight: bold;
+}
+
+.nav-item .icon {
+    font-size: 20px;
+    margin-right: 10px;
+}
+
+/* The active (highlighted) item */
+.nav-item.active {
+    background-color: #fff; /* White background for active item */
+    box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    color: #007bff; /* Blue text color for active item */
+}
+
+/* 6. Content Area - Right column */
+.content-area {
+    flex-grow: 1; /* Takes up the remaining space */
+    padding: 40px 60px;
+}
+
+.content-header {
+    /* The small, light-colored text at the top of the content area */
+    text-align: left;
+    color: #aaa;
+    font-size: 16px;
+    margin-bottom: 40px;
+}
+
+.content-header h1 {
+    font-size: 16px;
+    font-weight: normal;
+    margin: 0;
+    color: #555; /* Slightly darker than the surrounding text */
+}
+
+.main-title {
+    font-size: 36px;
+    font-weight: bold;
+    color: #7940FF; /* The distinctive purple color */
+    margin-top: 0;
+    margin-bottom: 20px;
+}
+
+.main-content-text p {
+    font-size: 18px;
+    line-height: 1.6;
+    color: #555;
+}
