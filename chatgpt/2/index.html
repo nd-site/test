@@ -1,0 +1,265 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Học Tin Học Online - Demo</title>
+  <style>
+    /* (Keep minimal styles for demo) */
+    body{font-family:system-ui,Segoe UI,Roboto,Arial;margin:0;background:linear-gradient(135deg,#e3f2fd,#bbdefb);color:#222}
+    .container{display:flex;min-height:100vh}
+    .sidebar{width:260px;background:linear-gradient(180deg,#1976d2,#1565c0);color:#fff;padding:20px;box-shadow:4px 0 15px rgba(0,0,0,.12);position:fixed;height:100%;overflow:auto}
+    .main{margin-left:260px;flex:1;padding:28px}
+    .nav-item{display:block;color:#fff;padding:12px;border-radius:8px;margin-bottom:6px;text-decoration:none;cursor:pointer}
+    .nav-item.active{background:rgba(255,255,255,.08);font-weight:700}
+    .card{background:#fff;border-radius:12px;padding:18px;margin-bottom:18px;box-shadow:0 8px 20px rgba(0,0,0,.06)}
+    .btn{background:linear-gradient(135deg,#1976d2,#42a5f5);color:#fff;padding:10px 14px;border-radius:12px;border:0;cursor:pointer}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px}
+    .lesson-list li{padding:8px 10px;border-radius:8px;cursor:pointer}
+    .lesson-list li:hover{background:rgba(25,118,210,.06)}
+    .small{font-size:.9rem;color:#555}
+    .right{float:right}
+    .hidden{display:none}
+    /* quiz styles */
+    .answer-option{padding:12px;border-radius:10px;border:1px solid #e6e6e6;margin-bottom:10px;cursor:pointer}
+    .answer-option.selected{background:linear-gradient(135deg,#e3f2fd,#bbdefb);border-color:#1976d2}
+    .answer-option.correct{background:linear-gradient(135deg,#c8e6c9,#e8f5e9);border-color:#4caf50}
+    .answer-option.incorrect{background:linear-gradient(135deg,#ffcccb,#ffc1b3);border-color:#f44336}
+    pre{background:#f8f9fa;padding:12px;border-radius:8px;overflow:auto}
+    .badge{display:inline-block;padding:6px 10px;border-radius:999px;background:#fff;color:#1976d2;font-weight:700}
+  </style>
+</head>
+<body>
+  <div class="container">
+    <aside class="sidebar">
+      <div style="text-align:center;margin-bottom:18px">
+        <div style="width:72px;height:72px;margin:0 auto;border-radius:50%;background:linear-gradient(135deg,#42a5f5,#1e88e5);display:flex;align-items:center;justify-content:center;font-size:28px;box-shadow:0 8px 20px rgba(0,0,0,.12)">💻</div>
+        <h2 style="margin:12px 0 4px">Học Tin Học</h2>
+        <div class="small">Demo hệ thống - Nhật Đăng</div>
+      </div>
+      <nav>
+        <a class="nav-item active" data-target="home">🏠 Trang chủ</a>
+        <a class="nav-item" data-target="self-study">📚 Tự học</a>
+        <a class="nav-item" data-target="new-knowledge">🧠 Kiến thức mới</a>
+        <a class="nav-item" data-target="exercises">✏️ Bài tập</a>
+        <a class="nav-item" data-target="practice-test">📝 Kiểm tra thử</a>
+        <hr style="border:none;border-top:1px solid rgba(255,255,255,.06);margin:12px 0">
+        <div class="small">Lịch sử làm bài</div>
+        <ul id="history" style="list-style:none;padding:8px 0;margin:8px 0 0"></ul>
+      </nav>
+    </aside>
+    <main class="main">
+      <section id="home" class="card">
+        <h1>Chào mừng đến với Học Tin Học</h1>
+        <p class="small">Nền tảng học tập cho THCS/THPT. Chọn mục bên trái để bắt đầu.</p>
+        <div class="grid" style="margin-top:12px">
+          <div class="card">
+            <h3>Tự học</h3>
+            <p class="small">Danh sách bài học có hướng dẫn, ví dụ, code mẫu.</p>
+            <button class="btn" onclick="openSection('self-study')">Mở Tự Học</button>
+          </div>
+          <div class="card">
+            <h3>Kiểm tra thử</h3>
+            <p class="small">Luyện đề, random câu hỏi, lưu điểm.</p>
+            <button class="btn" onclick="openSection('practice-test')">Bắt đầu Thi</button>
+          </div>
+          <div class="card">
+            <h3>Ôn nhanh 5 phút</h3>
+            <p class="small">Random 5 câu - phù hợp ôn trước giờ thi.</p>
+            <button class="btn" onclick="startQuick5()">Ôn 5 phút</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="self-study" class="card hidden">
+        <h2>📚 Tự Học</h2>
+        <div style="display:flex;gap:18px;margin-top:12px;align-items:flex-start;">
+          <div style="flex:1">
+            <ul class="lesson-list" id="lesson-list" style="list-style:none;padding:0;margin:0"></ul>
+          </div>
+          <div style="flex:2">
+            <div id="lesson-content"><em>Chọn một bài để xem nội dung.</em></div>
+          </div>
+        </div>
+      </section>
+
+      <section id="new-knowledge" class="card hidden">
+        <h2>🧠 Kiến thức mới & mẹo</h2>
+        <div id="tips-list"></div>
+      </section>
+
+      <section id="exercises" class="card hidden">
+        <h2>✏️ Bài tập</h2>
+        <div class="grid">
+          <div class="card">
+            <h3>Bài trắc nghiệm tự động</h3>
+            <p class="small">Hệ thống trắc nghiệm có chấm tự động.</p>
+            <button class="btn" onclick="openSection('practice-test')">Làm Bài</button>
+          </div>
+          <div class="card">
+            <h3>Luyện gõ 10 ngón (mini)</h3>
+            <p class="small">Mini typing practice.</p>
+            <button class="btn" onclick="openTyping()">Bắt đầu</button>
+          </div>
+        </div>
+      </section>
+
+      <section id="practice-test" class="card hidden">
+        <h2>📝 Kiểm tra thử</h2>
+        <div style="margin-top:12px">
+          <div style="display:flex;gap:12px;align-items:center">
+            <label>Số câu:</label>
+            <select id="num-questions"><option value="5">5</option><option value="10">10</option><option value="20">20</option></select>
+            <label>Thời gian (phút):</label>
+            <select id="time-min"><option value="5">5</option><option value="10" selected>10</option><option value="20">20</option></select>
+            <button class="btn" onclick="initTest()">Start</button>
+            <button class="btn" style="background:#6c757d" onclick="openSection('home')">Hủy</button>
+          </div>
+
+          <div id="test-area" style="margin-top:18px;display:none">
+            <div style="display:flex;justify-content:space-between;align-items:center">
+              <div><strong id="test-title">Bài Thi</strong></div>
+              <div><span class="small">Time: </span><span id="timer">00:00</span></div>
+            </div>
+            <div id="question-box" style="margin-top:12px"></div>
+            <div style="margin-top:12px;display:flex;gap:8px">
+              <button class="btn" onclick="prevQ()">Câu trước</button>
+              <button class="btn" onclick="nextQ()">Câu tiếp</button>
+              <button class="btn" onclick="submitTest()">Nộp bài</button>
+            </div>
+          </div>
+
+          <div id="result-area" style="margin-top:18px;display:none"></div>
+        </div>
+      </section>
+
+      <section id="typing" class="card hidden">
+        <h2>Luyện gõ 10 ngón - Mini</h2>
+        <div>
+          <div class="card">
+            <div id="typing-text">Type this sample text: <pre id="sample">the quick brown fox jumps over the lazy dog</pre></div>
+            <textarea id="type-input" rows="4" style="width:100%"></textarea>
+            <div style="margin-top:8px"><button class="btn" onclick="checkTyping()">Kiểm tra</button></div>
+            <div id="typing-result" style="margin-top:8px"></div>
+          </div>
+        </div>
+      </section>
+
+    </main>
+  </div>
+
+  <script>
+    /* --- Data stores --- */
+    const lessons = [
+      {id:'l1', title:'Nhập môn lập trình', content:'<h3>Nhập môn lập trình</h3><p>Khái niệm cơ bản: thuật toán, biến, vòng lặp.</p><pre>// Ví dụ JS
+let x = 5;
+console.log(x);</pre>'},
+      {id:'l2', title:'Lập trình Python cơ bản', content:'<h3>Python</h3><p>List, tuple, dict. Ví dụ: <pre>nums = [1,2,3]
+print(nums)</pre>'},
+      {id:'l3', title:'Cơ sở dữ liệu & SQL', content:'<h3>SQL</h3><p>SELECT, INSERT, UPDATE, DELETE. Ví dụ: <pre>SELECT * FROM users;</pre>'}
+    ];
+
+    const tips = [
+      {title:'Mẹo Excel', text:'Dùng Ctrl+C / Ctrl+V; Autofill; Hàm SUM, AVERAGE.'},
+      {title:'Mẹo lập trình', text:'Luôn debug từng bước; viết comment rõ ràng.'}
+    ];
+
+    // Small question bank
+    const questionBank = [
+      {q:'Thuật toán là gì?', opts:['Ngôn ngữ lập trình','Tập hợp bước','Phần mềm','Phần cứng'], ans:1},
+      {q:'Phím tắt sao chép?', opts:['Ctrl+V','Ctrl+C','Ctrl+X','Ctrl+Z'], ans:1},
+      {q:'List Python biểu diễn bằng?', opts:['{}','[]','()','<>'], ans:1},
+      {q:'Stack chạy theo?', opts:['FIFO','LIFO','Random','None'], ans:1},
+      {q:'Hàm in trong Python?', opts:['echo()','print()','display()','printf()'], ans:1},
+      {q:'SQL lấy tất cả table?', opts:['SELECT *','GET *','FETCH *','SHOW *'], ans:0}
+    ];
+
+    /* --- Navigation --- */
+    document.querySelectorAll('.nav-item').forEach(a=>a.addEventListener('click',e=>{
+      document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active'));
+      e.currentTarget.classList.add('active');
+      const t = e.currentTarget.dataset.target;
+      document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden'));
+      document.getElementById(t).classList.remove('hidden');
+      window.scrollTo({top:0,behavior:'smooth'});
+    }));
+
+    function openSection(id){ document.querySelectorAll('.nav-item').forEach(x=>x.classList.remove('active')); document.querySelector('[data-target="'+id+'"]').classList.add('active'); document.querySelectorAll('main section').forEach(s=>s.classList.add('hidden')); document.getElementById(id).classList.remove('hidden'); }
+
+    /* --- Self study render --- */
+    const lessonListEl = document.getElementById('lesson-list');
+    const lessonContent = document.getElementById('lesson-content');
+    lessons.forEach(l=>{
+      const li = document.createElement('li'); li.innerHTML = `<strong>${l.title}</strong><div class="small">Bài học ngắn</div>`;
+      li.addEventListener('click',()=>{ lessonContent.innerHTML = l.content; saveProgress('lastLesson', l.id); addBadgeIfNeeded(l.id); });
+      lessonListEl.appendChild(li);
+    });
+
+    /* --- Tips --- */
+    const tipsEl = document.getElementById('tips-list');
+    tips.forEach(t=>{ const d = document.createElement('div'); d.className='card'; d.innerHTML=`<h4>${t.title}</h4><p class="small">${t.text}</p>`; tipsEl.appendChild(d); });
+
+    /* --- Quick5 --- */
+    function startQuick5(){ const prev = document.querySelector('[data-target="practice-test"]'); openSection('practice-test'); document.getElementById('num-questions').value = 5; document.getElementById('time-min').value = 5; initTest(); }
+
+    /* --- Typing --- */
+    function openTyping(){ openSection('typing'); document.getElementById('type-input').value = ''; document.getElementById('typing-result').innerText = '' }
+    function checkTyping(){ const sample = document.getElementById('sample').innerText.trim(); const input = document.getElementById('type-input').value.trim(); const correct = input===sample; const acc = matchAccuracy(sample,input); document.getElementById('typing-result').innerText = `Độ chính xác: ${Math.round(acc*100)}% — ${correct? 'Hoàn hảo!':'Cần luyện thêm'}`; }
+    function matchAccuracy(s,t){ if(!s) return 0; let m=0; for(let i=0;i<Math.min(s.length,t.length);i++) if(s[i]===t[i]) m++; return m/s.length; }
+
+    /* --- Test system --- */
+    let testState = null; let timerInterval=null;
+    function initTest(){ // build test from questionBank
+      const n = parseInt(document.getElementById('num-questions').value,10);
+      const mins = parseInt(document.getElementById('time-min').value,10);
+      const pool = shuffle(Array.from(questionBank));
+      const qs = pool.slice(0,n);
+      testState = {qs, cur:0, answers:new Array(n).fill(null), time:mins*60, start:Date.now()};
+      renderQuestion();
+      document.getElementById('test-area').style.display='block'; document.getElementById('result-area').style.display='none';
+      startTimer();
+    }
+    function renderQuestion(){ const q = testState.qs[testState.cur]; document.getElementById('test-title').innerText = `Câu ${testState.cur+1}/${testState.qs.length}`; const box = document.getElementById('question-box'); box.innerHTML = `<div style="font-weight:700">${q.q}</div>`; q.opts.forEach((o,i)=>{ const d=document.createElement('div'); d.className='answer-option'+(testState.answers[testState.cur]===i?' selected':''); d.innerText=String.fromCharCode(65+i)+'. '+o; d.addEventListener('click',()=>{ testState.answers[testState.cur]=i; document.querySelectorAll('.answer-option').forEach(x=>x.classList.remove('selected')); d.classList.add('selected'); }); box.appendChild(d); }); }
+    function prevQ(){ if(testState.cur>0){ testState.cur--; renderQuestion(); } }
+    function nextQ(){ if(testState.cur<testState.qs.length-1){ testState.cur++; renderQuestion(); } }
+    function submitTest(){ if(!testState) return; clearInterval(timerInterval); // grade
+      let correct=0; testState.qs.forEach((q,i)=>{ if(testState.answers[i]===q.ans) correct++; }); const score = Math.round((correct/testState.qs.length)*100);
+      const timeTaken = Math.floor((Date.now()-testState.start)/1000);
+      const res = document.getElementById('result-area'); res.style.display='block'; res.innerHTML = `<div class="card"><h3>Kết quả</h3><p class="small">Số câu đúng: ${correct}/${testState.qs.length}</p><p class="small">Điểm: ${score}</p><p class="small">Thời gian: ${Math.floor(timeTaken/60)}:${String(timeTaken%60).padStart(2,'0')}</p></div>`;
+      // save history
+      saveResult({date:new Date().toISOString(),correct,total:testState.qs.length,score,time:timeTaken}); renderHistory(); // show answers
+      showAnswerReview(); testState=null; document.getElementById('test-area').style.display='none'; }
+
+    function showAnswerReview(){ const area = document.getElementById('result-area'); const d = document.createElement('div'); d.className='card'; d.innerHTML='<h4>Xem đáp án</h4>';
+      (Array.from(arguments.callee.caller ? arguments.callee.caller.testState?.qs || [] : []) || []).forEach(()=>{}); // noop fallback
+      // we'll use last saved result to display review quickly: rebuild from last attempt stored in localStorage
+      const last = JSON.parse(localStorage.getItem('lastAttempt')||'null'); if(last && last.qs){ last.qs.forEach((q,i)=>{ const el=document.createElement('div'); el.style.marginBottom='8px'; el.innerHTML=`<div style="font-weight:700">${q.q}</div>`; q.opts.forEach((o,oi)=>{ const oel=document.createElement('div'); oel.className='answer-option'; if(oi===q.ans) oel.classList.add('correct'); if(last.answers[i]===oi && oi!==q.ans) oel.classList.add('incorrect'); oel.innerText=String.fromCharCode(65+oi)+'. '+o; el.appendChild(oel); }); d.appendChild(el); }); area.appendChild(d); }
+    }
+
+    function startTimer(){ clearInterval(timerInterval); timerInterval = setInterval(()=>{ if(!testState) return clearInterval(timerInterval); testState.time--; const mm = Math.floor(testState.time/60); const ss = testState.time%60; document.getElementById('timer').innerText = `${String(mm).padStart(2,'0')}:${String(ss).padStart(2,'0')}`; if(testState.time<=0){ clearInterval(timerInterval); submitTest(); } },1000);
+      // persist last attempt for review
+      localStorage.setItem('lastAttempt', JSON.stringify(testState)); }
+
+    /* --- Utilities & storage --- */
+    function shuffle(a){ for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+
+    function saveResult(obj){ const hist = JSON.parse(localStorage.getItem('history')||'[]'); hist.unshift(obj); localStorage.setItem('history',JSON.stringify(hist.slice(0,20))); localStorage.setItem('lastAttempt', JSON.stringify({qs:obj.qs||[],answers:obj.answers||[] })); }
+
+    function renderHistory(){ const h = JSON.parse(localStorage.getItem('history')||'[]'); const el = document.getElementById('history'); el.innerHTML=''; h.forEach(it=>{ const li=document.createElement('li'); li.innerHTML=`<div style="display:flex;justify-content:space-between"><div><strong>${new Date(it.date).toLocaleString()}</strong><div class="small">${it.correct}/${it.total} — ${it.score}</div></div><div class="small">${Math.floor(it.time/60)}:${String(it.time%60).padStart(2,'0')}</div></div>`; el.appendChild(li); }); }
+
+    // Save last lesson progress & badges
+    function saveProgress(k,v){ localStorage.setItem(k,v); }
+    function addBadgeIfNeeded(lessonId){ const badges = JSON.parse(localStorage.getItem('badges')||'[]'); if(!badges.includes(lessonId)){ badges.push(lessonId); localStorage.setItem('badges',JSON.stringify(badges)); showBadge(lessonId); } }
+    function showBadge(id){ alert('Bạn nhận huy hiệu cho: '+id); }
+
+    // initial
+    renderHistory();
+
+    // Quick helper to open practice-test and start quick 5
+    function startQuick5(){ document.getElementById('num-questions').value='5'; document.getElementById('time-min').value='5'; initTest(); }
+
+    // Expose small functions to global for onclick
+    window.openSection = openSection; window.startQuick5 = startQuick5; window.openTyping = openTyping; window.checkTyping = checkTyping; window.initTest = initTest; window.prevQ = prevQ; window.nextQ = nextQ; window.submitTest = submitTest;
+  </script>
+</body>
+</html>
