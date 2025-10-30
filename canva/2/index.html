@@ -1,0 +1,600 @@
+<!doctype html>
+<html lang="vi">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trang Web Học Tin Học</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            min-height: 100%;
+            color: #333;
+        }
+
+        .container {
+            display: flex;
+            min-height: 100%;
+        }
+
+        /* Sidebar */
+        .sidebar {
+            width: 280px;
+            background: linear-gradient(180deg, #1976d2 0%, #1565c0 100%);
+            color: white;
+            padding: 0;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.1);
+            position: fixed;
+            height: 100%;
+            overflow-y: auto;
+            z-index: 1000;
+        }
+
+        .logo-section {
+            text-align: center;
+            padding: 30px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .logo {
+            width: 80px;
+            height: 80px;
+            background: linear-gradient(135deg, #42a5f5 0%, #1e88e5 100%);
+            border-radius: 50%;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+            border: 3px solid rgba(255,255,255,0.3);
+        }
+
+        .site-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            margin: 0;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .nav-menu {
+            padding: 20px 0;
+        }
+
+        .nav-item {
+            display: block;
+            padding: 15px 25px;
+            color: white;
+            text-decoration: none;
+            transition: all 0.3s ease;
+            border-left: 4px solid transparent;
+            font-weight: 500;
+            cursor: pointer;
+        }
+
+        .nav-item:hover {
+            background: rgba(255,255,255,0.1);
+            border-left-color: #42a5f5;
+            padding-left: 30px;
+        }
+
+        .nav-item.active {
+            background: rgba(255,255,255,0.15);
+            border-left-color: #42a5f5;
+            font-weight: bold;
+        }
+
+        .nav-item i {
+            margin-right: 12px;
+            width: 20px;
+            text-align: center;
+        }
+
+        /* Main Content */
+        .main-content {
+            flex: 1;
+            margin-left: 280px;
+            padding: 30px;
+        }
+
+        .content-section {
+            display: none;
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            animation: fadeIn 0.5s ease-in-out;
+        }
+
+        .content-section.active {
+            display: block;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .section-title {
+            font-size: 2.5rem;
+            color: #1565c0;
+            margin-bottom: 20px;
+            font-weight: bold;
+            text-align: center;
+        }
+
+        .section-subtitle {
+            font-size: 1.2rem;
+            color: #666;
+            text-align: center;
+            margin-bottom: 40px;
+            line-height: 1.6;
+        }
+
+        /* Home Page Specific */
+        .welcome-banner {
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            padding: 50px;
+            border-radius: 20px;
+            text-align: center;
+            margin-bottom: 40px;
+            box-shadow: 0 15px 35px rgba(25,118,210,0.3);
+        }
+
+        .welcome-title {
+            font-size: 3rem;
+            font-weight: bold;
+            margin-bottom: 20px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+        }
+
+        .welcome-description {
+            font-size: 1.3rem;
+            line-height: 1.6;
+            opacity: 0.95;
+        }
+
+        .features-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-top: 40px;
+        }
+
+        .feature-card {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            padding: 30px;
+            border-radius: 15px;
+            text-align: center;
+            transition: all 0.3s ease;
+            border: 2px solid transparent;
+        }
+
+        .feature-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 15px 35px rgba(25,118,210,0.2);
+            border-color: #42a5f5;
+        }
+
+        .feature-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            color: #1565c0;
+        }
+
+        .feature-title {
+            font-size: 1.4rem;
+            font-weight: bold;
+            color: #1565c0;
+            margin-bottom: 15px;
+        }
+
+        .feature-description {
+            color: #666;
+            line-height: 1.6;
+        }
+
+        /* Content Cards */
+        .content-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .content-card {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            padding: 25px;
+            border-radius: 12px;
+            border-left: 5px solid #1976d2;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .content-card:hover {
+            transform: translateX(5px);
+            box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+        }
+
+        .card-title {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #1565c0;
+            margin-bottom: 10px;
+        }
+
+        .card-description {
+            color: #666;
+            line-height: 1.5;
+            font-size: 0.95rem;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            text-decoration: none;
+            display: inline-block;
+            margin: 10px 5px;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(25,118,210,0.3);
+        }
+
+        /* Footer */
+        .footer {
+            background: #1565c0;
+            color: white;
+            text-align: center;
+            padding: 20px;
+            margin-top: 50px;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 768px) {
+            .sidebar {
+                width: 100%;
+                height: auto;
+                position: relative;
+            }
+
+            .main-content {
+                margin-left: 0;
+                padding: 20px;
+            }
+
+            .welcome-title {
+                font-size: 2rem;
+            }
+
+            .section-title {
+                font-size: 2rem;
+            }
+
+            .features-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        /* Progress Indicators */
+        .progress-section {
+            background: linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%);
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .progress-bar {
+            background: #e0e0e0;
+            border-radius: 10px;
+            height: 10px;
+            margin: 10px 0;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            height: 100%;
+            border-radius: 10px;
+            transition: width 0.3s ease;
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <div class="container"><!-- Sidebar -->
+   <nav class="sidebar">
+    <div class="logo-section">
+     <div class="logo">
+      💻
+     </div>
+     <h1 class="site-title">Học Tin Học Online</h1>
+    </div>
+    <div class="nav-menu"><a href="#" class="nav-item active" onclick="showSection('home')"> <i>🏠</i> Trang Chủ </a> <a href="#" class="nav-item" onclick="showSection('self-study')"> <i>📚</i> Tự Học </a> <a href="#" class="nav-item" onclick="showSection('new-knowledge')"> <i>🧠</i> Học Kiến Thức Mới </a> <a href="#" class="nav-item" onclick="showSection('exercises')"> <i>✏️</i> Làm Bài Tập </a> <a href="#" class="nav-item" onclick="showSection('practice-test')"> <i>📝</i> Kiểm Tra Thử </a>
+    </div>
+   </nav><!-- Main Content -->
+   <main class="main-content"><!-- Home Section -->
+    <section id="home" class="content-section active">
+     <div class="welcome-banner">
+      <h1 class="welcome-title">Chào Mừng Đến Với Học Tin Học Online</h1>
+      <p class="welcome-description">Nền tảng học tập hiện đại giúp bạn nắm vững kiến thức tin học từ cơ bản đến nâng cao. Với phương pháp học tương tác và bài tập thực hành phong phú.</p>
+     </div>
+     <div class="features-grid">
+      <div class="feature-card">
+       <div class="feature-icon">
+        📚
+       </div>
+       <h3 class="feature-title">Tự Học Linh Hoạt</h3>
+       <p class="feature-description">Học theo tốc độ của riêng bạn với các bài học được sắp xếp từ dễ đến khó, phù hợp với mọi trình độ.</p>
+      </div>
+      <div class="feature-card">
+       <div class="feature-icon">
+        🧠
+       </div>
+       <h3 class="feature-title">Kiến Thức Cập Nhật</h3>
+       <p class="feature-description">Nội dung được cập nhật liên tục theo xu hướng công nghệ mới nhất, giúp bạn không bị lạc hậu.</p>
+      </div>
+      <div class="feature-card">
+       <div class="feature-icon">
+        ✏️
+       </div>
+       <h3 class="feature-title">Bài Tập Thực Hành</h3>
+       <p class="feature-description">Hàng trăm bài tập từ cơ bản đến nâng cao với hệ thống chấm điểm và phản hồi chi tiết.</p>
+      </div>
+      <div class="feature-card">
+       <div class="feature-icon">
+        📝
+       </div>
+       <h3 class="feature-title">Kiểm Tra Đánh Giá</h3>
+       <p class="feature-description">Hệ thống kiểm tra thử giúp bạn đánh giá năng lực và chuẩn bị cho các kỳ thi quan trọng.</p>
+      </div>
+     </div>
+    </section><!-- Self Study Section -->
+    <section id="self-study" class="content-section">
+     <h2 class="section-title">📚 Tự Học</h2>
+     <p class="section-subtitle">Khám phá các khóa học tự học với tiến độ linh hoạt</p>
+     <div class="progress-section">
+      <h3>Tiến Độ Học Tập Của Bạn</h3>
+      <div style="margin: 15px 0;"><span>Lập trình cơ bản</span>
+       <div class="progress-bar">
+        <div class="progress-fill" style="width: 75%;"></div>
+       </div><small>75% hoàn thành</small>
+      </div>
+     </div>
+     <div class="content-grid">
+      <div class="content-card">
+       <h3 class="card-title">Nhập Môn Lập Trình</h3>
+       <p class="card-description">Học các khái niệm cơ bản về lập trình, thuật toán và cấu trúc dữ liệu.</p><button class="btn-primary">Bắt Đầu Học</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Lập Trình Python</h3>
+       <p class="card-description">Từ cú pháp cơ bản đến các ứng dụng thực tế với Python.</p><button class="btn-primary">Tiếp Tục</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Cơ Sở Dữ Liệu</h3>
+       <p class="card-description">Thiết kế và quản lý cơ sở dữ liệu với SQL và NoSQL.</p><button class="btn-primary">Khám Phá</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Phát Triển Web</h3>
+       <p class="card-description">HTML, CSS, JavaScript và các framework hiện đại.</p><button class="btn-primary">Học Ngay</button>
+      </div>
+     </div>
+    </section><!-- New Knowledge Section -->
+    <section id="new-knowledge" class="content-section">
+     <h2 class="section-title">🧠 Học Kiến Thức Mới</h2>
+     <p class="section-subtitle">Cập nhật những xu hướng công nghệ mới nhất</p>
+     <div class="content-grid">
+      <div class="content-card">
+       <h3 class="card-title">Trí Tuệ Nhân Tạo (AI)</h3>
+       <p class="card-description">Khám phá Machine Learning, Deep Learning và các ứng dụng AI.</p><button class="btn-primary">Tìm Hiểu</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Blockchain &amp; Cryptocurrency</h3>
+       <p class="card-description">Công nghệ blockchain và ứng dụng trong tài chính số.</p><button class="btn-primary">Khám Phá</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Cloud Computing</h3>
+       <p class="card-description">AWS, Azure, Google Cloud và kiến trúc đám mây.</p><button class="btn-primary">Học Ngay</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Cybersecurity</h3>
+       <p class="card-description">Bảo mật thông tin và an toàn mạng trong thời đại số.</p><button class="btn-primary">Bắt Đầu</button>
+      </div>
+     </div>
+    </section><!-- Exercises Section -->
+    <section id="exercises" class="content-section">
+     <h2 class="section-title">✏️ Làm Bài Tập</h2>
+     <p class="section-subtitle">Rèn luyện kỹ năng qua các bài tập thực hành</p>
+     <div class="content-grid">
+      <div class="content-card">
+       <h3 class="card-title">Bài Tập Thuật Toán</h3>
+       <p class="card-description">50+ bài tập về thuật toán sắp xếp, tìm kiếm và tối ưu hóa.</p><button class="btn-primary">Làm Bài</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Lập Trình Thực Hành</h3>
+       <p class="card-description">Các dự án mini giúp áp dụng kiến thức vào thực tế.</p><button class="btn-primary">Thực Hành</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Bài Tập SQL</h3>
+       <p class="card-description">Truy vấn cơ sở dữ liệu từ cơ bản đến nâng cao.</p><button class="btn-primary">Luyện Tập</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Coding Challenge</h3>
+       <p class="card-description">Thử thách lập trình với các bài toán khó và thú vị.</p><button class="btn-primary">Thử Thách</button>
+      </div>
+     </div>
+    </section><!-- Practice Test Section -->
+    <section id="practice-test" class="content-section">
+     <h2 class="section-title">📝 Kiểm Tra Thử</h2>
+     <p class="section-subtitle">Đánh giá năng lực và chuẩn bị cho kỳ thi</p>
+     <div class="content-grid">
+      <div class="content-card">
+       <h3 class="card-title">Kiểm Tra Lập Trình Cơ Bản</h3>
+       <p class="card-description">30 câu hỏi - 45 phút | Đánh giá kiến thức nền tảng</p><button class="btn-primary">Bắt Đầu Thi</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Thi Thử Python</h3>
+       <p class="card-description">25 câu hỏi - 40 phút | Kiểm tra kỹ năng Python</p><button class="btn-primary">Làm Bài</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Đề Thi Cơ Sở Dữ Liệu</h3>
+       <p class="card-description">35 câu hỏi - 50 phút | SQL và thiết kế CSDL</p><button class="btn-primary">Thi Ngay</button>
+      </div>
+      <div class="content-card">
+       <h3 class="card-title">Tổng Hợp Tin Học</h3>
+       <p class="card-description">50 câu hỏi - 60 phút | Kiểm tra tổng hợp kiến thức</p><button class="btn-primary">Thử Sức</button>
+      </div>
+     </div>
+    </section>
+   </main>
+  </div>
+  <footer class="footer">
+   <p>© 2024 Học Tin Học Online - Nền tảng học tập hiện đại và hiệu quả</p>
+  </footer>
+  <script>
+        const defaultConfig = {
+            site_title: "Học Tin Học Online",
+            welcome_title: "Chào Mừng Đến Với Học Tin Học Online",
+            welcome_description: "Nền tảng học tập hiện đại giúp bạn nắm vững kiến thức tin học từ cơ bản đến nâng cao. Với phương pháp học tương tác và bài tập thực hành phong phú.",
+            footer_text: "© 2024 Học Tin Học Online - Nền tảng học tập hiện đại và hiệu quả"
+        };
+
+        function showSection(sectionId) {
+            // Hide all sections
+            document.querySelectorAll('.content-section').forEach(section => {
+                section.classList.remove('active');
+            });
+            
+            // Remove active class from all nav items
+            document.querySelectorAll('.nav-item').forEach(item => {
+                item.classList.remove('active');
+            });
+            
+            // Show selected section
+            document.getElementById(sectionId).classList.add('active');
+            
+            // Add active class to clicked nav item
+            event.target.classList.add('active');
+        }
+
+        // Element SDK integration
+        async function onConfigChange(config) {
+            const siteTitle = document.querySelector('.site-title');
+            const welcomeTitle = document.querySelector('.welcome-title');
+            const welcomeDescription = document.querySelector('.welcome-description');
+            const footerText = document.querySelector('.footer p');
+            
+            if (siteTitle) {
+                siteTitle.textContent = config.site_title || defaultConfig.site_title;
+            }
+            if (welcomeTitle) {
+                welcomeTitle.textContent = config.welcome_title || defaultConfig.welcome_title;
+            }
+            if (welcomeDescription) {
+                welcomeDescription.textContent = config.welcome_description || defaultConfig.welcome_description;
+            }
+            if (footerText) {
+                footerText.textContent = config.footer_text || defaultConfig.footer_text;
+            }
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["site_title", config.site_title || defaultConfig.site_title],
+                ["welcome_title", config.welcome_title || defaultConfig.welcome_title],
+                ["welcome_description", config.welcome_description || defaultConfig.welcome_description],
+                ["footer_text", config.footer_text || defaultConfig.footer_text]
+            ]);
+        }
+
+        // Initialize Element SDK
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        // Add smooth scrolling and interactive effects
+        document.addEventListener('DOMContentLoaded', function() {
+            // Add hover effects to cards
+            document.querySelectorAll('.content-card').forEach(card => {
+                card.addEventListener('mouseenter', function() {
+                    this.style.transform = 'translateX(5px) scale(1.02)';
+                });
+                
+                card.addEventListener('mouseleave', function() {
+                    this.style.transform = 'translateX(0) scale(1)';
+                });
+            });
+
+            // Add click effects to buttons
+            document.querySelectorAll('.btn-primary').forEach(button => {
+                button.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    
+                    // Create ripple effect
+                    const ripple = document.createElement('span');
+                    ripple.style.position = 'absolute';
+                    ripple.style.borderRadius = '50%';
+                    ripple.style.background = 'rgba(255,255,255,0.6)';
+                    ripple.style.transform = 'scale(0)';
+                    ripple.style.animation = 'ripple 0.6s linear';
+                    ripple.style.left = '50%';
+                    ripple.style.top = '50%';
+                    ripple.style.width = '20px';
+                    ripple.style.height = '20px';
+                    ripple.style.marginLeft = '-10px';
+                    ripple.style.marginTop = '-10px';
+                    
+                    this.style.position = 'relative';
+                    this.appendChild(ripple);
+                    
+                    setTimeout(() => {
+                        ripple.remove();
+                    }, 600);
+                });
+            });
+        });
+
+        // Add CSS for ripple animation
+        const style = document.createElement('style');
+        style.textContent = `
+            @keyframes ripple {
+                to {
+                    transform: scale(4);
+                    opacity: 0;
+                }
+            }
+        `;
+        document.head.appendChild(style);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99687791e1830715',t:'MTc2MTgwMTY2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+  </html>
