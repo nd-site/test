@@ -1,0 +1,549 @@
+<!doctype html>
+<html lang="vi">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Trò Chơi Nối Từ Vựng</title>
+  <script src="/_sdk/element_sdk.js"></script>
+  <style>
+        body {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 20px;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100%;
+            color: #333;
+        }
+
+        .game-container {
+            max-width: 1000px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        }
+
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .game-title {
+            font-size: 2.5rem;
+            font-weight: bold;
+            color: #4a5568;
+            margin-bottom: 10px;
+            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+        }
+
+        .instruction {
+            font-size: 1.1rem;
+            color: #718096;
+            margin-bottom: 20px;
+        }
+
+        .score-board {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            padding: 15px 25px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+        }
+
+        .score {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #2d3748;
+        }
+
+        .hint-btn {
+            background: linear-gradient(135deg, #a8edea 0%, #fed6e3 100%);
+            border: none;
+            padding: 10px 20px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            color: #2d3748;
+        }
+
+        .hint-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.2);
+        }
+
+        .game-area {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 40px;
+            margin-bottom: 30px;
+        }
+
+        .terms-column, .definitions-column {
+            background: #f7fafc;
+            padding: 20px;
+            border-radius: 15px;
+            border: 3px dashed #e2e8f0;
+        }
+
+        .column-title {
+            font-size: 1.3rem;
+            font-weight: bold;
+            text-align: center;
+            margin-bottom: 20px;
+            color: #2d3748;
+        }
+
+        .term-item, .definition-item {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 12px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 500;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            user-select: none;
+        }
+
+        .definition-item {
+            background: linear-gradient(135deg, #ffecd2 0%, #fcb69f 100%);
+            color: #2d3748;
+        }
+
+        .term-item:hover, .definition-item:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .term-item.selected {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            transform: scale(1.05);
+        }
+
+        .definition-item.selected {
+            background: linear-gradient(135deg, #ed8936 0%, #dd6b20 100%);
+            color: white;
+            transform: scale(1.05);
+        }
+
+        .term-item.matched, .definition-item.matched {
+            background: linear-gradient(135deg, #48bb78 0%, #38a169 100%);
+            color: white;
+            opacity: 0.7;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        .term-item.wrong, .definition-item.wrong {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            animation: shake 0.5s ease-in-out;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-5px); }
+            75% { transform: translateX(5px); }
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.1); }
+        }
+
+        .celebration {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 20px;
+            text-align: center;
+            font-size: 1.5rem;
+            font-weight: bold;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.3);
+            z-index: 1000;
+            animation: bounce 0.6s ease-in-out;
+        }
+
+        .confetti {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #ffd700;
+            animation: confetti-fall 3s linear infinite;
+        }
+
+        @keyframes confetti-fall {
+            0% {
+                transform: translateY(-100vh) rotate(0deg);
+                opacity: 1;
+            }
+            100% {
+                transform: translateY(100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        .reset-btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 25px;
+            font-size: 1.1rem;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: block;
+            margin: 0 auto;
+        }
+
+        .reset-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+        }
+
+        .hint-text {
+            background: linear-gradient(135deg, #bee3f8 0%, #90cdf4 100%);
+            padding: 15px;
+            border-radius: 10px;
+            margin: 15px 0;
+            color: #2d3748;
+            font-weight: 500;
+            display: none;
+        }
+
+        @media (max-width: 768px) {
+            .game-area {
+                grid-template-columns: 1fr;
+                gap: 20px;
+            }
+            
+            .game-title {
+                font-size: 2rem;
+            }
+            
+            .score-board {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+  <script src="https://cdn.tailwindcss.com" type="text/javascript"></script>
+ </head>
+ <body>
+  <main class="game-container">
+   <header class="header">
+    <h1 class="game-title">Trò Chơi Nối Từ Vựng Hình Học</h1>
+    <p class="instruction">Nối các thuật ngữ hình học với định nghĩa tương ứng bằng cách nhấp vào chúng!</p>
+   </header>
+   <div class="score-board">
+    <div class="score">
+     Điểm: <span id="score">0</span>/6
+    </div><button class="hint-btn" onclick="showHint()">💡 Gợi ý</button>
+    <div class="score">
+     Thời gian: <span id="timer">00:00</span>
+    </div>
+   </div>
+   <div class="hint-text" id="hintText"></div>
+   <div class="game-area">
+    <div class="terms-column">
+     <h2 class="column-title">🔷 Thuật Ngữ</h2>
+     <div id="termsContainer"></div>
+    </div>
+    <div class="definitions-column">
+     <h2 class="column-title">📝 Định Nghĩa</h2>
+     <div id="definitionsContainer"></div>
+    </div>
+   </div><button class="reset-btn" onclick="resetGame()">🔄 Chơi Lại</button>
+  </main>
+  <script>
+        const defaultConfig = {
+            game_title: "Trò Chơi Nối Từ Vựng Hình Học",
+            instruction_text: "Nối các thuật ngữ hình học với định nghĩa tương ứng bằng cách nhấp vào chúng!",
+            success_message: "🎉 Xuất sắc! Bạn đã nối đúng tất cả!"
+        };
+
+        const vocabularyData = [
+            {
+                id: 1,
+                term: "Tam giác",
+                definition: "Hình có ba cạnh và ba góc",
+                hint: "Hình này có số cạnh ít nhất trong các đa giác"
+            },
+            {
+                id: 2,
+                term: "Hình vuông",
+                definition: "Hình tứ giác có bốn cạnh bằng nhau và bốn góc vuông",
+                hint: "Hình này vừa là hình chữ nhật vừa là hình thoi"
+            },
+            {
+                id: 3,
+                term: "Hình tròn",
+                definition: "Hình có tất cả các điểm cách đều tâm một khoảng bằng bán kính",
+                hint: "Hình này không có góc nào cả"
+            },
+            {
+                id: 4,
+                term: "Hình thoi",
+                definition: "Hình tứ giác có bốn cạnh bằng nhau",
+                hint: "Hình này giống hình vuông nhưng các góc không nhất thiết là góc vuông"
+            },
+            {
+                id: 5,
+                term: "Hình chữ nhật",
+                definition: "Hình tứ giác có bốn góc vuông",
+                hint: "Hình này có các cạnh đối song song và bằng nhau"
+            },
+            {
+                id: 6,
+                term: "Hình thang",
+                definition: "Hình tứ giác có một cặp cạnh đối song song",
+                hint: "Hình này chỉ có một cặp cạnh song song"
+            }
+        ];
+
+        let selectedTerm = null;
+        let selectedDefinition = null;
+        let matchedPairs = [];
+        let score = 0;
+        let startTime = Date.now();
+        let timerInterval;
+        let hintUsed = false;
+
+        function initGame() {
+            renderTerms();
+            renderDefinitions();
+            startTimer();
+            updateScore();
+        }
+
+        function renderTerms() {
+            const container = document.getElementById('termsContainer');
+            const shuffledTerms = [...vocabularyData].sort(() => Math.random() - 0.5);
+            
+            container.innerHTML = '';
+            shuffledTerms.forEach(item => {
+                const termElement = document.createElement('div');
+                termElement.className = 'term-item';
+                termElement.textContent = item.term;
+                termElement.dataset.id = item.id;
+                termElement.onclick = () => selectTerm(termElement, item.id);
+                container.appendChild(termElement);
+            });
+        }
+
+        function renderDefinitions() {
+            const container = document.getElementById('definitionsContainer');
+            const shuffledDefinitions = [...vocabularyData].sort(() => Math.random() - 0.5);
+            
+            container.innerHTML = '';
+            shuffledDefinitions.forEach(item => {
+                const defElement = document.createElement('div');
+                defElement.className = 'definition-item';
+                defElement.textContent = item.definition;
+                defElement.dataset.id = item.id;
+                defElement.onclick = () => selectDefinition(defElement, item.id);
+                container.appendChild(defElement);
+            });
+        }
+
+        function selectTerm(element, id) {
+            if (matchedPairs.includes(id)) return;
+            
+            // Clear previous selection
+            document.querySelectorAll('.term-item.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            selectedTerm = { element, id };
+            element.classList.add('selected');
+            
+            checkMatch();
+        }
+
+        function selectDefinition(element, id) {
+            if (matchedPairs.includes(id)) return;
+            
+            // Clear previous selection
+            document.querySelectorAll('.definition-item.selected').forEach(el => {
+                el.classList.remove('selected');
+            });
+            
+            selectedDefinition = { element, id };
+            element.classList.add('selected');
+            
+            checkMatch();
+        }
+
+        function checkMatch() {
+            if (!selectedTerm || !selectedDefinition) return;
+            
+            if (selectedTerm.id === selectedDefinition.id) {
+                // Correct match
+                selectedTerm.element.classList.remove('selected');
+                selectedDefinition.element.classList.remove('selected');
+                selectedTerm.element.classList.add('matched');
+                selectedDefinition.element.classList.add('matched');
+                
+                matchedPairs.push(selectedTerm.id);
+                score++;
+                updateScore();
+                
+                // Celebration animation
+                selectedTerm.element.style.animation = 'pulse 0.6s ease-in-out';
+                selectedDefinition.element.style.animation = 'pulse 0.6s ease-in-out';
+                
+                createConfetti();
+                
+                if (matchedPairs.length === vocabularyData.length) {
+                    setTimeout(() => showCelebration(), 500);
+                }
+            } else {
+                // Wrong match
+                selectedTerm.element.classList.add('wrong');
+                selectedDefinition.element.classList.add('wrong');
+                
+                setTimeout(() => {
+                    selectedTerm.element.classList.remove('selected', 'wrong');
+                    selectedDefinition.element.classList.remove('selected', 'wrong');
+                }, 500);
+            }
+            
+            selectedTerm = null;
+            selectedDefinition = null;
+        }
+
+        function createConfetti() {
+            for (let i = 0; i < 10; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + '%';
+                confetti.style.backgroundColor = ['#ffd700', '#ff6b6b', '#4ecdc4', '#45b7d1', '#96ceb4'][Math.floor(Math.random() * 5)];
+                confetti.style.animationDelay = Math.random() * 2 + 's';
+                document.body.appendChild(confetti);
+                
+                setTimeout(() => confetti.remove(), 3000);
+            }
+        }
+
+        function showCelebration() {
+            const celebration = document.createElement('div');
+            celebration.className = 'celebration';
+            celebration.innerHTML = `
+                <div style="font-size: 3rem; margin-bottom: 10px;">🎉</div>
+                <div>${window.elementSdk?.config?.success_message || defaultConfig.success_message}</div>
+                <div style="font-size: 1rem; margin-top: 10px;">Thời gian: ${document.getElementById('timer').textContent}</div>
+            `;
+            document.body.appendChild(celebration);
+            
+            clearInterval(timerInterval);
+            
+            setTimeout(() => celebration.remove(), 3000);
+        }
+
+        function showHint() {
+            if (hintUsed) return;
+            
+            const unmatched = vocabularyData.filter(item => !matchedPairs.includes(item.id));
+            if (unmatched.length === 0) return;
+            
+            const randomItem = unmatched[Math.floor(Math.random() * unmatched.length)];
+            const hintText = document.getElementById('hintText');
+            hintText.textContent = `💡 Gợi ý cho "${randomItem.term}": ${randomItem.hint}`;
+            hintText.style.display = 'block';
+            
+            setTimeout(() => {
+                hintText.style.display = 'none';
+            }, 5000);
+            
+            hintUsed = true;
+        }
+
+        function updateScore() {
+            document.getElementById('score').textContent = score;
+        }
+
+        function startTimer() {
+            timerInterval = setInterval(() => {
+                const elapsed = Math.floor((Date.now() - startTime) / 1000);
+                const minutes = Math.floor(elapsed / 60).toString().padStart(2, '0');
+                const seconds = (elapsed % 60).toString().padStart(2, '0');
+                document.getElementById('timer').textContent = `${minutes}:${seconds}`;
+            }, 1000);
+        }
+
+        function resetGame() {
+            selectedTerm = null;
+            selectedDefinition = null;
+            matchedPairs = [];
+            score = 0;
+            startTime = Date.now();
+            hintUsed = false;
+            
+            clearInterval(timerInterval);
+            document.getElementById('hintText').style.display = 'none';
+            
+            initGame();
+        }
+
+        // Element SDK integration
+        async function onConfigChange(config) {
+            const gameTitle = document.querySelector('.game-title');
+            const instruction = document.querySelector('.instruction');
+            
+            if (gameTitle) {
+                gameTitle.textContent = config.game_title || defaultConfig.game_title;
+            }
+            if (instruction) {
+                instruction.textContent = config.instruction_text || defaultConfig.instruction_text;
+            }
+        }
+
+        function mapToCapabilities(config) {
+            return {
+                recolorables: [],
+                borderables: [],
+                fontEditable: undefined,
+                fontSizeable: undefined
+            };
+        }
+
+        function mapToEditPanelValues(config) {
+            return new Map([
+                ["game_title", config.game_title || defaultConfig.game_title],
+                ["instruction_text", config.instruction_text || defaultConfig.instruction_text],
+                ["success_message", config.success_message || defaultConfig.success_message]
+            ]);
+        }
+
+        // Initialize Element SDK
+        if (window.elementSdk) {
+            window.elementSdk.init({
+                defaultConfig,
+                onConfigChange,
+                mapToCapabilities,
+                mapToEditPanelValues
+            });
+        }
+
+        // Initialize game when page loads
+        document.addEventListener('DOMContentLoaded', initGame);
+    </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99685463b420d007',t:'MTc2MTgwMDIyMy4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
