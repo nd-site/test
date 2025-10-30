@@ -312,6 +312,184 @@
             border-radius: 10px;
             transition: width 0.3s ease;
         }
+
+        /* Test Interface Styles */
+        .test-interface {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 30px;
+            margin-top: 30px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .test-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+            padding-bottom: 20px;
+            border-bottom: 2px solid #dee2e6;
+        }
+
+        .test-header h3 {
+            color: #1565c0;
+            margin: 0;
+            font-size: 1.5rem;
+        }
+
+        .test-info {
+            display: flex;
+            gap: 20px;
+            font-weight: bold;
+            color: #666;
+        }
+
+        .question-container {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            margin-bottom: 30px;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 25px;
+            line-height: 1.6;
+        }
+
+        .answers-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .answer-option {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border: 2px solid #dee2e6;
+            border-radius: 10px;
+            padding: 15px 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .answer-option:hover {
+            border-color: #42a5f5;
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            transform: translateX(5px);
+        }
+
+        .answer-option.selected {
+            border-color: #1976d2;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            font-weight: bold;
+        }
+
+        .answer-option.correct {
+            border-color: #4caf50;
+            background: linear-gradient(135deg, #4caf50 0%, #66bb6a 100%);
+            color: white;
+        }
+
+        .answer-option.incorrect {
+            border-color: #f44336;
+            background: linear-gradient(135deg, #f44336 0%, #ef5350 100%);
+            color: white;
+        }
+
+        .test-controls {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, #6c757d 0%, #868e96 100%);
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 25px;
+            font-weight: bold;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn-secondary:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(108,117,125,0.3);
+        }
+
+        .btn-secondary:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Test Results Styles */
+        .test-results {
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+            border-radius: 15px;
+            padding: 40px;
+            margin-top: 30px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+        }
+
+        .results-header h3 {
+            color: #1565c0;
+            font-size: 2rem;
+            margin-bottom: 30px;
+        }
+
+        .score-display {
+            margin: 30px 0;
+        }
+
+        .score-circle {
+            display: inline-block;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #1976d2 0%, #42a5f5 100%);
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            font-size: 2rem;
+            font-weight: bold;
+            box-shadow: 0 10px 25px rgba(25,118,210,0.3);
+            margin: 0 auto;
+        }
+
+        .score-circle small {
+            font-size: 0.8rem;
+            opacity: 0.9;
+        }
+
+        .results-details {
+            background: white;
+            padding: 25px;
+            border-radius: 12px;
+            margin: 30px 0;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+        }
+
+        .results-details p {
+            margin: 10px 0;
+            font-size: 1.1rem;
+            color: #333;
+        }
+
+        .results-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
     </style>
   <style>@view-transition { navigation: auto; }</style>
   <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
@@ -446,11 +624,11 @@
      <div class="content-grid">
       <div class="content-card">
        <h3 class="card-title">Kiểm Tra Lập Trình Cơ Bản</h3>
-       <p class="card-description">30 câu hỏi - 45 phút | Đánh giá kiến thức nền tảng</p><button class="btn-primary">Bắt Đầu Thi</button>
+       <p class="card-description">5 câu hỏi - 10 phút | Đánh giá kiến thức nền tảng</p><button class="btn-primary" onclick="startTest('basic-programming')">Bắt Đầu Thi</button>
       </div>
       <div class="content-card">
        <h3 class="card-title">Thi Thử Python</h3>
-       <p class="card-description">25 câu hỏi - 40 phút | Kiểm tra kỹ năng Python</p><button class="btn-primary">Làm Bài</button>
+       <p class="card-description">5 câu hỏi - 10 phút | Kiểm tra kỹ năng Python</p><button class="btn-primary" onclick="startTest('python-test')">Làm Bài</button>
       </div>
       <div class="content-card">
        <h3 class="card-title">Đề Thi Cơ Sở Dữ Liệu</h3>
@@ -459,6 +637,35 @@
       <div class="content-card">
        <h3 class="card-title">Tổng Hợp Tin Học</h3>
        <p class="card-description">50 câu hỏi - 60 phút | Kiểm tra tổng hợp kiến thức</p><button class="btn-primary">Thử Sức</button>
+      </div>
+     </div><!-- Test Interface -->
+     <div id="test-interface" class="test-interface" style="display: none;">
+      <div class="test-header">
+       <h3 id="test-title">Bài Kiểm Tra</h3>
+       <div class="test-info"><span>Câu <span id="current-question">1</span>/<span id="total-questions">5</span></span> <span>Thời gian: <span id="test-timer">10:00</span></span>
+       </div>
+      </div>
+      <div class="question-container">
+       <div class="question-text" id="question-text"></div>
+       <div class="answers-container" id="answers-container"></div>
+      </div>
+      <div class="test-controls"><button class="btn-secondary" id="prev-btn" onclick="previousQuestion()" disabled>Câu Trước</button> <button class="btn-primary" id="next-btn" onclick="nextQuestion()">Câu Tiếp</button> <button class="btn-primary" id="submit-btn" onclick="submitTest()" style="display: none;">Nộp Bài</button>
+      </div>
+     </div><!-- Test Results -->
+     <div id="test-results" class="test-results" style="display: none;">
+      <div class="results-header">
+       <h3>🎉 Kết Quả Bài Thi</h3>
+      </div>
+      <div class="score-display">
+       <div class="score-circle"><span id="final-score">0</span> <small>điểm</small>
+       </div>
+      </div>
+      <div class="results-details">
+       <p>Số câu đúng: <span id="correct-answers">0</span>/<span id="total-answers">5</span></p>
+       <p>Thời gian làm bài: <span id="completion-time">0:00</span></p>
+       <p id="performance-message">Tuyệt vời!</p>
+      </div>
+      <div class="results-actions"><button class="btn-primary" onclick="reviewAnswers()">Xem Đáp Án</button> <button class="btn-secondary" onclick="backToTests()">Làm Bài Khác</button>
       </div>
      </div>
     </section>
@@ -491,6 +698,411 @@
             
             // Add active class to clicked nav item
             event.target.classList.add('active');
+        }
+
+        // Test Data
+        const testData = {
+            'basic-programming': {
+                title: 'Kiểm Tra Lập Trình Cơ Bản',
+                timeLimit: 600, // 10 minutes in seconds
+                questions: [
+                    {
+                        id: 1,
+                        question: 'Thuật toán là gì?',
+                        options: [
+                            'Một ngôn ngữ lập trình',
+                            'Một tập hợp các bước để giải quyết vấn đề',
+                            'Một loại phần mềm',
+                            'Một thiết bị phần cứng'
+                        ],
+                        correct: 1,
+                        explanation: 'Thuật toán là một tập hợp các bước được sắp xếp theo thứ tự logic để giải quyết một vấn đề cụ thể.'
+                    },
+                    {
+                        id: 2,
+                        question: 'Biến trong lập trình dùng để làm gì?',
+                        options: [
+                            'Lưu trữ dữ liệu',
+                            'Thực thi chương trình',
+                            'Tạo giao diện người dùng',
+                            'Kết nối mạng'
+                        ],
+                        correct: 0,
+                        explanation: 'Biến được sử dụng để lưu trữ dữ liệu trong bộ nhớ và có thể thay đổi giá trị trong quá trình thực thi chương trình.'
+                    },
+                    {
+                        id: 3,
+                        question: 'Vòng lặp for được sử dụng khi nào?',
+                        options: [
+                            'Khi không biết số lần lặp',
+                            'Khi biết trước số lần lặp',
+                            'Khi cần kiểm tra điều kiện',
+                            'Khi cần dừng chương trình'
+                        ],
+                        correct: 1,
+                        explanation: 'Vòng lặp for thường được sử dụng khi chúng ta biết trước số lần lặp cần thực hiện.'
+                    },
+                    {
+                        id: 4,
+                        question: 'Cấu trúc dữ liệu Stack hoạt động theo nguyên tắc nào?',
+                        options: [
+                            'FIFO (First In, First Out)',
+                            'LIFO (Last In, First Out)',
+                            'Random Access',
+                            'Sequential Access'
+                        ],
+                        correct: 1,
+                        explanation: 'Stack hoạt động theo nguyên tắc LIFO - phần tử được thêm vào cuối cùng sẽ được lấy ra đầu tiên.'
+                    },
+                    {
+                        id: 5,
+                        question: 'Debugging trong lập trình có nghĩa là gì?',
+                        options: [
+                            'Viết code mới',
+                            'Tìm và sửa lỗi trong chương trình',
+                            'Tối ưu hóa hiệu suất',
+                            'Tạo giao diện người dùng'
+                        ],
+                        correct: 1,
+                        explanation: 'Debugging là quá trình tìm kiếm, phát hiện và sửa chữa các lỗi (bugs) trong chương trình.'
+                    }
+                ]
+            },
+            'python-test': {
+                title: 'Thi Thử Python',
+                timeLimit: 600, // 10 minutes in seconds
+                questions: [
+                    {
+                        id: 1,
+                        question: 'Cú pháp nào đúng để khai báo một list trong Python?',
+                        options: [
+                            'list = {1, 2, 3}',
+                            'list = [1, 2, 3]',
+                            'list = (1, 2, 3)',
+                            'list = <1, 2, 3>'
+                        ],
+                        correct: 1,
+                        explanation: 'Trong Python, list được khai báo bằng dấu ngoặc vuông [].'
+                    },
+                    {
+                        id: 2,
+                        question: 'Hàm nào được sử dụng để in ra màn hình trong Python?',
+                        options: [
+                            'echo()',
+                            'printf()',
+                            'print()',
+                            'display()'
+                        ],
+                        correct: 2,
+                        explanation: 'Hàm print() được sử dụng để hiển thị dữ liệu ra màn hình trong Python.'
+                    },
+                    {
+                        id: 3,
+                        question: 'Kiểu dữ liệu nào trong Python là immutable (không thể thay đổi)?',
+                        options: [
+                            'list',
+                            'dict',
+                            'tuple',
+                            'set'
+                        ],
+                        correct: 2,
+                        explanation: 'Tuple là kiểu dữ liệu immutable trong Python, nghĩa là không thể thay đổi sau khi được tạo.'
+                    },
+                    {
+                        id: 4,
+                        question: 'Cách nào đúng để tạo comment trong Python?',
+                        options: [
+                            '// This is a comment',
+                            '/* This is a comment */',
+                            '# This is a comment',
+                            '<!-- This is a comment -->'
+                        ],
+                        correct: 2,
+                        explanation: 'Trong Python, comment được tạo bằng dấu # ở đầu dòng.'
+                    },
+                    {
+                        id: 5,
+                        question: 'Phương thức nào được sử dụng để thêm phần tử vào cuối list?',
+                        options: [
+                            'add()',
+                            'insert()',
+                            'append()',
+                            'push()'
+                        ],
+                        correct: 2,
+                        explanation: 'Phương thức append() được sử dụng để thêm một phần tử vào cuối list trong Python.'
+                    }
+                ]
+            }
+        };
+
+        // Test State
+        let currentTest = null;
+        let currentQuestionIndex = 0;
+        let userAnswers = [];
+        let testStartTime = null;
+        let testTimer = null;
+        let timeRemaining = 0;
+
+        function startTest(testType) {
+            currentTest = testData[testType];
+            currentQuestionIndex = 0;
+            userAnswers = new Array(currentTest.questions.length).fill(null);
+            testStartTime = Date.now();
+            timeRemaining = currentTest.timeLimit;
+
+            // Hide test selection and show test interface
+            document.querySelector('.content-grid').style.display = 'none';
+            document.getElementById('test-interface').style.display = 'block';
+            document.getElementById('test-results').style.display = 'none';
+
+            // Set test title and info
+            document.getElementById('test-title').textContent = currentTest.title;
+            document.getElementById('total-questions').textContent = currentTest.questions.length;
+
+            // Start timer
+            startTestTimer();
+
+            // Display first question
+            displayQuestion();
+        }
+
+        function startTestTimer() {
+            testTimer = setInterval(() => {
+                timeRemaining--;
+                updateTimerDisplay();
+
+                if (timeRemaining <= 0) {
+                    clearInterval(testTimer);
+                    submitTest();
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(timeRemaining / 60);
+            const seconds = timeRemaining % 60;
+            document.getElementById('test-timer').textContent = 
+                `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function displayQuestion() {
+            const question = currentTest.questions[currentQuestionIndex];
+            
+            // Update question counter
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            
+            // Display question text
+            document.getElementById('question-text').textContent = question.question;
+            
+            // Display answer options
+            const answersContainer = document.getElementById('answers-container');
+            answersContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'answer-option';
+                answerDiv.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                answerDiv.onclick = () => selectAnswer(index);
+                
+                // Highlight if previously selected
+                if (userAnswers[currentQuestionIndex] === index) {
+                    answerDiv.classList.add('selected');
+                }
+                
+                answersContainer.appendChild(answerDiv);
+            });
+            
+            // Update navigation buttons
+            updateNavigationButtons();
+        }
+
+        function selectAnswer(answerIndex) {
+            // Remove previous selection
+            document.querySelectorAll('.answer-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            // Add selection to clicked option
+            document.querySelectorAll('.answer-option')[answerIndex].classList.add('selected');
+            
+            // Store answer
+            userAnswers[currentQuestionIndex] = answerIndex;
+        }
+
+        function updateNavigationButtons() {
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            // Previous button
+            prevBtn.disabled = currentQuestionIndex === 0;
+            
+            // Next/Submit button
+            if (currentQuestionIndex === currentTest.questions.length - 1) {
+                nextBtn.style.display = 'none';
+                submitBtn.style.display = 'inline-block';
+            } else {
+                nextBtn.style.display = 'inline-block';
+                submitBtn.style.display = 'none';
+            }
+        }
+
+        function previousQuestion() {
+            if (currentQuestionIndex > 0) {
+                currentQuestionIndex--;
+                displayQuestion();
+            }
+        }
+
+        function nextQuestion() {
+            if (currentQuestionIndex < currentTest.questions.length - 1) {
+                currentQuestionIndex++;
+                displayQuestion();
+            }
+        }
+
+        function submitTest() {
+            clearInterval(testTimer);
+            
+            // Calculate results
+            let correctAnswers = 0;
+            currentTest.questions.forEach((question, index) => {
+                if (userAnswers[index] === question.correct) {
+                    correctAnswers++;
+                }
+            });
+            
+            const score = Math.round((correctAnswers / currentTest.questions.length) * 100);
+            const completionTime = Math.floor((Date.now() - testStartTime) / 1000);
+            
+            // Display results
+            displayResults(correctAnswers, score, completionTime);
+        }
+
+        function displayResults(correctAnswers, score, completionTime) {
+            // Hide test interface and show results
+            document.getElementById('test-interface').style.display = 'none';
+            document.getElementById('test-results').style.display = 'block';
+            
+            // Update result displays
+            document.getElementById('final-score').textContent = score;
+            document.getElementById('correct-answers').textContent = correctAnswers;
+            document.getElementById('total-answers').textContent = currentTest.questions.length;
+            
+            const minutes = Math.floor(completionTime / 60);
+            const seconds = completionTime % 60;
+            document.getElementById('completion-time').textContent = 
+                `${minutes}:${seconds.toString().padStart(2, '0')}`;
+            
+            // Performance message
+            let message = '';
+            if (score >= 90) message = '🎉 Xuất sắc! Bạn đã nắm vững kiến thức!';
+            else if (score >= 70) message = '👍 Tốt! Bạn cần ôn luyện thêm một chút.';
+            else if (score >= 50) message = '📚 Khá! Hãy học thêm để cải thiện.';
+            else message = '💪 Cần cố gắng hơn! Đừng bỏ cuộc nhé!';
+            
+            document.getElementById('performance-message').textContent = message;
+        }
+
+        function reviewAnswers() {
+            // Hide results and show detailed review
+            document.getElementById('test-results').style.display = 'none';
+            document.getElementById('test-interface').style.display = 'block';
+            
+            // Modify interface for review mode
+            document.getElementById('test-title').textContent = currentTest.title + ' - Xem Đáp Án';
+            document.querySelector('.test-info').innerHTML = '<span>Chế độ xem đáp án</span>';
+            
+            currentQuestionIndex = 0;
+            displayReviewQuestion();
+        }
+
+        function displayReviewQuestion() {
+            const question = currentTest.questions[currentQuestionIndex];
+            
+            // Update question counter
+            document.getElementById('current-question').textContent = currentQuestionIndex + 1;
+            
+            // Display question text
+            document.getElementById('question-text').textContent = question.question;
+            
+            // Display answer options with correct/incorrect indicators
+            const answersContainer = document.getElementById('answers-container');
+            answersContainer.innerHTML = '';
+            
+            question.options.forEach((option, index) => {
+                const answerDiv = document.createElement('div');
+                answerDiv.className = 'answer-option';
+                answerDiv.textContent = `${String.fromCharCode(65 + index)}. ${option}`;
+                
+                // Mark correct answer
+                if (index === question.correct) {
+                    answerDiv.classList.add('correct');
+                }
+                
+                // Mark user's incorrect answer
+                if (userAnswers[currentQuestionIndex] === index && index !== question.correct) {
+                    answerDiv.classList.add('incorrect');
+                }
+                
+                answersContainer.appendChild(answerDiv);
+            });
+            
+            // Add explanation
+            const explanationDiv = document.createElement('div');
+            explanationDiv.style.marginTop = '20px';
+            explanationDiv.style.padding = '15px';
+            explanationDiv.style.background = 'linear-gradient(135deg, #e8f5e8 0%, #c8e6c9 100%)';
+            explanationDiv.style.borderRadius = '8px';
+            explanationDiv.innerHTML = `<strong>Giải thích:</strong> ${question.explanation}`;
+            answersContainer.appendChild(explanationDiv);
+            
+            // Update navigation for review mode
+            const prevBtn = document.getElementById('prev-btn');
+            const nextBtn = document.getElementById('next-btn');
+            const submitBtn = document.getElementById('submit-btn');
+            
+            prevBtn.disabled = currentQuestionIndex === 0;
+            prevBtn.onclick = () => {
+                if (currentQuestionIndex > 0) {
+                    currentQuestionIndex--;
+                    displayReviewQuestion();
+                }
+            };
+            
+            if (currentQuestionIndex === currentTest.questions.length - 1) {
+                nextBtn.textContent = 'Kết Thúc';
+                nextBtn.onclick = backToTests;
+            } else {
+                nextBtn.textContent = 'Câu Tiếp';
+                nextBtn.onclick = () => {
+                    currentQuestionIndex++;
+                    displayReviewQuestion();
+                };
+            }
+            
+            nextBtn.style.display = 'inline-block';
+            submitBtn.style.display = 'none';
+        }
+
+        function backToTests() {
+            // Reset test state
+            currentTest = null;
+            currentQuestionIndex = 0;
+            userAnswers = [];
+            testStartTime = null;
+            clearInterval(testTimer);
+            
+            // Show test selection and hide other interfaces
+            document.querySelector('.content-grid').style.display = 'grid';
+            document.getElementById('test-interface').style.display = 'none';
+            document.getElementById('test-results').style.display = 'none';
+            
+            // Reset navigation buttons
+            const nextBtn = document.getElementById('next-btn');
+            nextBtn.textContent = 'Câu Tiếp';
+            nextBtn.onclick = nextQuestion;
         }
 
         // Element SDK integration
@@ -596,5 +1208,5 @@
         `;
         document.head.appendChild(style);
     </script>
- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99687791e1830715',t:'MTc2MTgwMTY2NC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
-  </html>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'99687fcb86c78505',t:'MTc2MTgwMjAwMS4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
