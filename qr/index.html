@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Tạo mã QR - Nhật Đăng</title>
+  <link rel="icon" href="../logo.png" type="image/png">
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui;
+      background: linear-gradient(to right, #a1c4fd, #c2e9fb);
+      display:flex; flex-direction:column; align-items:center; justify-content:center;
+      height:100vh;
+    }
+    input, button, select {
+      padding: 10px 14px;
+      border-radius: 10px;
+      border:none;
+      font-size: 16px;
+      margin: 6px;
+    }
+    button { background:#00c6ff; color:white; cursor:pointer; }
+    #qr-wrap { margin-top:15px; }
+    canvas { width:260px; height:260px; }
+  </style>
+</head>
+<body>
+
+  <h2>Tạo mã QR - Nhật Đăng</h2>
+
+  <input type="text" id="text" placeholder="Nhập nội dung…">
+
+  <select id="mode">
+    <option value="solid">Màu đơn</option>
+    <option value="gradient">Gradient</option>
+  </select>
+
+  <input type="color" id="color1" value="#000000">
+  <input type="color" id="color2" value="#0055ff">
+
+  <input type="file" id="logo" accept="image/*">
+
+  <button onclick="generate()">Tạo QR</button>
+  <button onclick="downloadQR()">Tải ảnh</button>
+
+  <div id="qr-wrap"></div>
+
+<script>
+let canvasQR = null;
+
+// Tạo QR bo tròn + finder rounded
+function drawRoundedQR(text, options, logoImage, callback) {
+  const size = 500;
+  const canvas = document.createElement("canvas");
+  const ctx = canvas.getContext("2d");
+  canvas.width = canvas.height = size;
+
+  // Tạo QR data
+  const qr = window.QRCode.create(text, { errorCorrectionLevel:"H" });
+  const cells = qr.modules.data;
+  const count = qr.modules.size;
+  const cellSize = size / (count + 6); // padding rộng hơn
+  const margin = cellSize * 3;
+
+  // Gradient hoặc Solid
+  let fillStyle = options.color1;
+  if (options.mode === "gradient") {
+    const g = ctx.createLinearGradient(0,0,size,size);
+    g.addColorStop(0, options.color1);
+    g.addColorStop(1, options.color2);
+    fillStyle = g;
+  }
+
+  ctx.fillStyle = "#ffffff";
+  ctx.fillRect(0, 0, size, size);
+
+  ctx.fillStyle = fillStyle;
+  const radius = cellSize * 0.45;
+
+  // Vẽ pixel QR bo tròn
+  for (let r = 0; r < count; r++) {
+    for (let c = 0; c < count; c++) {
+      if (qr.modules.get(c, r)) {
+        const x = margin + c * cellSize;
+        const y = margin + r * cellSize;
+        ctx.beginPath();
+        ctx.roundRect(x, y, cellSize, cellSize, radius);
+        ctx.fill();
+      }
+    }
+  }
+
+  // Finder (3 góc) — bo tròn dày
+  function drawFinder(x, y) {
+    ctx.fillStyle = fillStyle;
+    ctx.beginPath();
+    ctx.roundRect(x, y, cellSize*7, cellSize*7, radius*2.5);
+    ctx.fill();
+
+    ctx.fillStyle = "#ffffff";
+    ctx.roundRect(x+cellSize*1.5, y+cellSize*1.5, cellSize*4, cellSize*4, radius*1.8);
+    ctx.fill();
+
+    ctx.fillStyle = fillStyle;
+    ctx.roundRect(x+cellSize*2.3, y+cellSize*2.3, cellSize*2.4, cellSize*2.4, radius*1.5);
+    ctx.fill();
+  }
+
+  drawFinder(margin, margin);
+  drawFinder(size - margin - cellSize*7, margin);
+  drawFinder(margin, size - margin - cellSize*7);
+
+  // Chèn logo
+  if (logoImage) {
+    const logoSize = size * 0.22;
+    setTimeout(() => {
+      ctx.drawImage(logoImage, (size-logoSize)/2, (size-logoSize)/2, logoSize, logoSize);
+      callback(canvas);
+    }, 50);
+  } else {
+    callback(canvas);
+  }
+}
+
+// Tạo QR
+function generate() {
+  const text = document.getElementById("text").value.trim();
+  if (!text) return alert("Nhập nội dung.");
+
+  const mode = document.getElementById("mode").value;
+  const color1 = document.getElementById("color1").value;
+  const color2 = document.getElementById("color2").value;
+
+  const logoFile = document.getElementById("logo").files[0];
+  let logoImg = null;
+
+  if (logoFile) {
+    logoImg = new Image();
+    logoImg.src = URL.createObjectURL(logoFile);
+  }
+
+  drawRoundedQR(text, {mode, color1, color2}, logoImg, (canvas) => {
+    canvasQR = canvas;
+    const wrap = document.getElementById("qr-wrap");
+    wrap.innerHTML = "";
+    wrap.appendChild(canvas);
+  });
+}
+
+// Tải ảnh
+function downloadQR() {
+  if (!canvasQR) return alert("Chưa tạo QR.");
+
+  const a = document.createElement("a");
+  a.href = canvasQR.toDataURL("image/png");
+  a.download = "qr-nd.png";
+  a.click();
+}
+</script>
+
+<script src="https://cdn.jsdelivr.net/npm/qrcode/build/qrcode.min.js"></script>
+</body>
+</html>
