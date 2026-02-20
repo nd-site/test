@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ND Labs Identity</title>
+    <style>
+        body { font-family: sans-serif; padding: 20px; line-height: 1.6; }
+        .container { max-width: 400px; margin: auto; border: 1px solid #ccc; padding: 20px; border-radius: 8px; }
+        input { width: 100%; padding: 8px; margin: 10px 0; box-sizing: border-box; }
+        button { width: 100%; padding: 10px; cursor: pointer; margin-bottom: 5px; }
+        .google-btn { background-color: #4285F4; color: white; border: none; }
+        .logout-btn { background-color: #ff4444; color: white; border: none; }
+        #user-info { display: none; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <h2>ND Labs Account</h2>
+
+    <div id="auth-form">
+        <label>ND ID (Ví dụ: `namduong`):</label>
+        <input type="text" id="nd-id" placeholder="Tên định danh của bạn">
+        <label>Mật khẩu:</label>
+        <input type="password" id="nd-pass" placeholder="Mật khẩu">
+        
+        <button onclick="handleAuth('signin')">Đăng nhập</button>
+        <button onclick="handleAuth('signup')">Tạo tài khoản ND</button>
+    </div>
+
+    <div id="user-info">
+        <p>Chào mừng bạn, <strong id="display-id"></strong></p>
+        <p>Email nội bộ: <small id="display-email"></small></p>
+        
+        <hr>
+        <h4>Liên kết hệ thống</h4>
+        <div id="link-status">Đang kiểm tra...</div>
+        <button id="btn-link-google" class="google-btn" onclick="linkGoogle()">Kết nối Gmail (Google)</button>
+        
+        <hr>
+        <button class="logout-btn" onclick="logout()">Đăng xuất</button>
+    </div>
+
+    <p id="msg" style="color: red; font-size: 14px;"></p>
+</div>
+
+<script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+    import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, onAuthStateChanged, signOut, GoogleAuthProvider, linkWithPopup } 
+    from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+    // Cấu hình của bạn
+    const firebaseConfig = {
+        apiKey: "AIzaSyDIHXhqSNYhIIozxC5dZ-mTcfXAPzPZgog",
+        authDomain: "ndlabs-0.firebaseapp.com",
+        databaseURL: "https://ndlabs-0-default-rtdb.asia-southeast1.firebasedatabase.app",
+        projectId: "ndlabs-0",
+        storageBucket: "ndlabs-0.firebasestorage.app",
+        messagingSenderId: "600040258053",
+        appId: "1:600040258053:web:617a19f62aafeb35d13a6c",
+        measurementId: "G-20W5SZ0BKB"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+    const googleProvider = new GoogleAuthProvider();
+
+    // Biến ID người dùng nhập thành email ảo @ndlabs.com
+    const formatID = (id) => id.includes('@') ? id : `${id}@ndlabs.com`;
+
+    window.handleAuth = async (type) => {
+        const id = formatID(document.getElementById('nd-id').value);
+        const pass = document.getElementById('nd-pass').value;
+        const msg = document.getElementById('msg');
+        
+        try {
+            if (type === 'signup') {
+                await createUserWithEmailAndPassword(auth, id, pass);
+                alert("Tạo tài khoản thành công!");
+            } else {
+                await signInWithEmailAndPassword(auth, id, pass);
+            }
+        } catch (error) {
+            msg.innerText = error.message;
+        }
+    };
+
+    window.linkGoogle = async () => {
+        try {
+            await linkWithPopup(auth.currentUser, googleProvider);
+            alert("Đã liên kết thành công với Google!");
+            location.reload(); 
+        } catch (error) {
+            alert("Lỗi liên kết: " + error.message);
+        }
+    };
+
+    window.logout = () => signOut(auth);
+
+    // Trạng thái đăng nhập
+    onAuthStateChanged(auth, (user) => {
+        const authForm = document.getElementById('auth-form');
+        const userInfo = document.getElementById('user-info');
+        
+        if (user) {
+            authForm.style.display = 'none';
+            userInfo.style.display = 'block';
+            document.getElementById('display-id').innerText = user.email.split('@')[0];
+            document.getElementById('display-email').innerText = user.email;
+
+            // Kiểm tra xem đã liên kết Google chưa
+            const isLinked = user.providerData.some(p => p.providerId === 'google.com');
+            document.getElementById('link-status').innerText = isLinked ? "✅ Đã liên kết Google" : "❌ Chưa liên kết Google";
+            document.getElementById('btn-link-google').style.display = isLinked ? 'none' : 'block';
+        } else {
+            authForm.style.display = 'block';
+            userInfo.style.display = 'none';
+        }
+    });
+</script>
+</body>
+</html>
