@@ -1,0 +1,444 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ô Ăn Quan 2 Players - ND Labs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .board-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+        }
+
+        .board-scaler {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: 100px repeat(5, 80px) 100px;
+            grid-template-rows: repeat(2, 80px);
+            gap: 15px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .pit {
+            width: 80px;
+            height: 80px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .pit.quan {
+            grid-row: span 2;
+            height: 175px;
+            border-radius: 3rem;
+            background: linear-gradient(135deg, #1e293b 0%, #020617 100%);
+            border-color: #fbbf24;
+            color: #fbbf24;
+            font-size: 2rem;
+            cursor: default;
+        }
+
+        .pit.playable {
+            border-color: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+            50% { box-shadow: 0 0 20px 2px currentColor; }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        .player-card {
+            padding: 1.5rem 2rem;
+            border-radius: 1.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid transparent;
+            min-width: 200px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .player-card.active {
+            transform: scale(1.1);
+            background: rgba(30, 41, 59, 0.9);
+            border-color: inherit;
+            box-shadow: 0 0 40px -10px currentColor;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.8);
+            backdrop-filter: blur(4px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 2.5rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .dir-btn {
+            background: #3b82f6;
+            padding: 1rem 2rem;
+            border-radius: 1rem;
+            margin: 0.5rem;
+            font-weight: 800;
+            color: white;
+            transition: all 0.2s;
+        }
+
+        .dir-btn:hover {
+            transform: translateY(-2px);
+            filter: brightness(1.1);
+        }
+
+        .p0-color { color: #38bdf8; border-color: #38bdf8; }
+        .p1-color { color: #818cf8; border-color: #818cf8; }
+
+        .zoom-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 12px 20px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+    </style>
+</head>
+<body>
+
+    <div class="board-container">
+        <!-- Player 2 (Top) -->
+        <div id="card-1" class="player-card p1-color mb-12">
+            <div class="text-xs uppercase tracking-widest font-bold opacity-60 mb-1">Người chơi 2</div>
+            <div id="score-1" class="text-5xl font-black">0</div>
+        </div>
+
+        <!-- Board -->
+        <div id="board-scaler" class="board-scaler">
+            <div id="board" class="board">
+                <!-- Row 1: Q-L, D5, D4, D3, D2, D1, Q-R (Order for 2P) -->
+            </div>
+        </div>
+
+        <!-- Player 1 (Bottom) -->
+        <div id="card-0" class="player-card p0-color mt-12">
+            <div class="text-xs uppercase tracking-widest font-bold opacity-60 mb-1">Người chơi 1</div>
+            <div id="score-0" class="text-5xl font-black">0</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="zoom-control">
+            <span class="text-xs font-bold opacity-50 uppercase">Kích thước</span>
+            <input type="range" id="zoom-slider" min="0.4" max="1.5" step="0.1" value="1" class="w-32 accent-blue-500">
+        </div>
+    </div>
+
+    <!-- Direction Picker -->
+    <div id="modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-6">Bạn muốn rải quân hướng nào?</h3>
+            <div class="flex gap-4">
+                <button class="dir-btn" onclick="handleMoveAction(-1)">← TRÁI</button>
+                <button class="dir-btn" onclick="handleMoveAction(1)">PHẢI →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Win Overlay -->
+    <div id="win-overlay" class="fixed inset-0 bg-slate-950/95 hidden flex-col items-center justify-center z-[2000]">
+        <h1 id="winner-text" class="text-6xl font-black text-white mb-8">KẾT QUẢ</h1>
+        <div id="final-stats" class="flex gap-12 mb-12"></div>
+        <button onclick="location.reload()" class="bg-white text-slate-950 px-10 py-4 rounded-2xl font-black hover:scale-105 transition">CHƠI LẠI</button>
+    </div>
+
+    <script>
+        // Game Logic Setup
+        // Index: 0 (Quan trái), 1-5 (Dân P1), 6 (Quan phải), 7-11 (Dân P2)
+        // Bố trí:
+        // [ 0] [11] [10] [ 9] [ 8] [ 7] [ 6]  <- P2
+        // [ 0] [ 1] [ 2] [ 3] [ 4] [ 5] [ 6]  <- P1
+        
+        let gameState = [];
+        let currentPlayer = 0;
+        let scores = [0, 0];
+        let isMoving = false;
+        let selectedIdx = -1;
+
+        const boardEl = document.getElementById('board');
+        const modalEl = document.getElementById('modal');
+        const zoomSlider = document.getElementById('zoom-slider');
+        const scalerEl = document.getElementById('board-scaler');
+
+        function init() {
+            gameState = [
+                { type: 'quan', count: 10, owner: -1 }, // 0
+                { type: 'dan', count: 5, owner: 0 },   // 1
+                { type: 'dan', count: 5, owner: 0 },   // 2
+                { type: 'dan', count: 5, owner: 0 },   // 3
+                { type: 'dan', count: 5, owner: 0 },   // 4
+                { type: 'dan', count: 5, owner: 0 },   // 5
+                { type: 'quan', count: 10, owner: -1 }, // 6
+                { type: 'dan', count: 5, owner: 1 },   // 7
+                { type: 'dan', count: 5, owner: 1 },   // 8
+                { type: 'dan', count: 5, owner: 1 },   // 9
+                { type: 'dan', count: 5, owner: 1 },   // 10
+                { type: 'dan', count: 5, owner: 1 }    // 11
+            ];
+            
+            if (window.innerWidth < 700) {
+                zoomSlider.value = 0.7;
+                scalerEl.style.transform = `scale(0.7)`;
+            }
+            
+            render();
+            updateUI();
+        }
+
+        function render() {
+            boardEl.innerHTML = '';
+            
+            // Render Quan Trái (Idx 0)
+            const qLeft = createPit(0);
+            qLeft.style.gridColumn = "1";
+            boardEl.appendChild(qLeft);
+
+            // Render Dân P2 (Idx 11 down to 7) - Hàng trên
+            for (let i = 11; i >= 7; i--) {
+                const p = createPit(i);
+                p.style.gridRow = "1";
+                p.style.gridColumn = (13 - i).toString();
+                boardEl.appendChild(p);
+            }
+
+            // Render Quan Phải (Idx 6)
+            const qRight = createPit(6);
+            qRight.style.gridColumn = "7";
+            boardEl.appendChild(qRight);
+
+            // Render Dân P1 (Idx 1 up to 5) - Hàng dưới
+            for (let i = 1; i <= 5; i++) {
+                const p = createPit(i);
+                p.style.gridRow = "2";
+                p.style.gridColumn = (i + 1).toString();
+                boardEl.appendChild(p);
+            }
+        }
+
+        function createPit(i) {
+            const pit = gameState[i];
+            const el = document.createElement('div');
+            el.id = `pit-${i}`;
+            const ownerClass = pit.owner === 0 ? 'p0-color' : pit.owner === 1 ? 'p1-color' : '';
+            el.className = `pit ${pit.type === 'quan' ? 'quan' : ''} ${ownerClass}`;
+            el.innerText = pit.count;
+
+            if (!isMoving && pit.owner === currentPlayer && pit.count > 0) {
+                el.classList.add('playable');
+                el.onclick = () => {
+                    selectedIdx = i;
+                    modalEl.style.display = 'flex';
+                };
+            }
+            return el;
+        }
+
+        async function handleMoveAction(dir) {
+            modalEl.style.display = 'none';
+            if (isMoving) return;
+            isMoving = true;
+
+            let curr = selectedIdx;
+            let hand = gameState[curr].count;
+            gameState[curr].count = 0;
+            updateValues();
+
+            while (true) {
+                // Rải quân
+                while (hand > 0) {
+                    curr = (curr + dir + 12) % 12;
+                    gameState[curr].count++;
+                    hand--;
+                    updateValues();
+                    highlight(curr);
+                    await new Promise(r => setTimeout(r, 200));
+                }
+
+                // Xét ô tiếp theo
+                let nxt = (curr + dir + 12) % 12;
+                let anxt = (nxt + dir + 12) % 12;
+
+                if (gameState[nxt].count > 0 && gameState[nxt].type === 'dan') {
+                    // Bốc lên rải tiếp
+                    hand = gameState[nxt].count;
+                    gameState[nxt].count = 0;
+                    curr = nxt;
+                    updateValues();
+                    await new Promise(r => setTimeout(r, 300));
+                } else if (gameState[nxt].count > 0 && gameState[nxt].type === 'quan') {
+                    // Dừng tại Quan
+                    break;
+                } else if (gameState[nxt].count === 0) {
+                    // Gặp ô trống -> Có thể ăn
+                    if (gameState[anxt].count > 0) {
+                        while (gameState[nxt].count === 0 && gameState[anxt].count > 0) {
+                            scores[currentPlayer] += gameState[anxt].count;
+                            gameState[anxt].count = 0;
+                            updateValues();
+                            
+                            const target = document.getElementById(`pit-${anxt}`);
+                            target.style.transform = "scale(1.4)";
+                            target.style.background = "white";
+                            await new Promise(r => setTimeout(r, 400));
+                            target.style.transform = "";
+                            target.style.background = "";
+
+                            nxt = (anxt + dir + 12) % 12;
+                            anxt = (nxt + dir + 12) % 12;
+                            if (gameState[nxt].count !== 0) break;
+                        }
+                        break;
+                    } else {
+                        // Hai ô trống
+                        break;
+                    }
+                }
+            }
+
+            checkGameOver();
+            isMoving = false;
+            currentPlayer = 1 - currentPlayer;
+            
+            // Check mượn nợ nếu hết quân rải
+            let myStones = gameState.filter(p => p.owner === currentPlayer).reduce((a, b) => a + b.count, 0);
+            if (myStones === 0 && !isAllQuanEmpty()) {
+                scores[currentPlayer] -= 5;
+                gameState.forEach(p => { if(p.owner === currentPlayer) p.count = 1; });
+            }
+
+            updateUI();
+            render();
+        }
+
+        function updateUI() {
+            scores.forEach((s, i) => {
+                document.getElementById(`score-${i}`).innerText = s;
+                document.getElementById(`card-${i}`).classList.toggle('active', i === currentPlayer);
+            });
+        }
+
+        function updateValues() {
+            gameState.forEach((p, i) => {
+                const el = document.getElementById(`pit-${i}`);
+                if (el) el.innerText = p.count;
+            });
+            scores.forEach((s, i) => {
+                const el = document.getElementById(`score-${i}`);
+                if (el) el.innerText = s;
+            });
+        }
+
+        function highlight(idx) {
+            const el = document.getElementById(`pit-${idx}`);
+            if (el) {
+                el.style.borderColor = "white";
+                el.style.boxShadow = "0 0 20px white";
+                setTimeout(() => {
+                    el.style.borderColor = "";
+                    el.style.boxShadow = "";
+                }, 150);
+            }
+        }
+
+        function isAllQuanEmpty() {
+            return gameState[0].count === 0 && gameState[6].count === 0;
+        }
+
+        function checkGameOver() {
+            if (isAllQuanEmpty()) {
+                gameState.forEach(p => {
+                    if (p.owner !== -1) {
+                        scores[p.owner] += p.count;
+                        p.count = 0;
+                    }
+                });
+                
+                const winOverlay = document.getElementById('win-overlay');
+                const winText = document.getElementById('winner-text');
+                const finalStats = document.getElementById('final-stats');
+                
+                let winner = scores[0] > scores[1] ? 0 : scores[1] > scores[0] ? 1 : -1;
+                winText.innerText = winner === -1 ? "HÒA NHAU!" : `P${winner + 1} THẮNG!`;
+                
+                finalStats.innerHTML = `
+                    <div class="text-center p0-color">
+                        <div class="text-sm opacity-50 uppercase font-bold">P1</div>
+                        <div class="text-5xl font-black">${scores[0]}</div>
+                    </div>
+                    <div class="text-center p1-color">
+                        <div class="text-sm opacity-50 uppercase font-bold">P2</div>
+                        <div class="text-5xl font-black">${scores[1]}</div>
+                    </div>
+                `;
+                
+                winOverlay.style.display = 'flex';
+            }
+        }
+
+        zoomSlider.oninput = (e) => {
+            scalerEl.style.transform = `scale(${e.target.value})`;
+        };
+
+        window.onload = init;
+    </script>
+</body>
+</html>
+
