@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ô Ăn Quan 2 Players & Bot - ND Labs</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: #020617;
+            color: #f8fafc;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        .board-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            background: radial-gradient(circle at center, #0f172a 0%, #020617 100%);
+        }
+
+        .board-scaler {
+            transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .board {
+            display: grid;
+            grid-template-columns: 100px repeat(5, 80px) 100px;
+            grid-template-rows: repeat(2, 80px);
+            gap: 15px;
+            padding: 20px;
+            background: rgba(30, 41, 59, 0.4);
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            position: relative;
+        }
+
+        .pit {
+            width: 80px;
+            height: 80px;
+            background: rgba(15, 23, 42, 0.8);
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+            border: 2px solid rgba(255, 255, 255, 0.05);
+            transition: all 0.3s ease;
+            cursor: pointer;
+            user-select: none;
+            position: relative;
+        }
+
+        .pit.quan {
+            grid-row: span 2;
+            height: 175px;
+            border-radius: 3rem;
+            background: linear-gradient(135deg, #1e293b 0%, #020617 100%);
+            border-color: #fbbf24;
+            color: #fbbf24;
+            font-size: 2rem;
+            cursor: default;
+        }
+
+        .pit.playable {
+            border-color: currentColor;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+            50% { box-shadow: 0 0 20px 2px currentColor; }
+            100% { box-shadow: 0 0 0 0 rgba(255, 255, 255, 0); }
+        }
+
+        .player-card {
+            padding: 1.2rem 2rem;
+            border-radius: 1.5rem;
+            background: rgba(15, 23, 42, 0.6);
+            border: 2px solid transparent;
+            min-width: 180px;
+            text-align: center;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .player-card.active {
+            transform: scale(1.1);
+            background: rgba(30, 41, 59, 0.9);
+            border-color: inherit;
+            box-shadow: 0 0 40px -10px currentColor;
+        }
+
+        .modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(2, 6, 23, 0.85);
+            backdrop-filter: blur(8px);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-content {
+            background: #1e293b;
+            padding: 2.5rem;
+            border-radius: 2rem;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+            max-width: 400px;
+            width: 90%;
+        }
+
+        .btn {
+            padding: 1rem 1.5rem;
+            border-radius: 1rem;
+            font-weight: 800;
+            transition: all 0.2s;
+            width: 100%;
+            margin-bottom: 0.75rem;
+        }
+
+        .btn-blue { background: #3b82f6; color: white; }
+        .btn-blue:hover { transform: translateY(-2px); filter: brightness(1.1); }
+
+        .p0-color { color: #38bdf8; border-color: #38bdf8; }
+        .p1-color { color: #818cf8; border-color: #818cf8; }
+
+        .zoom-control {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: rgba(30, 41, 59, 0.8);
+            padding: 12px 20px;
+            border-radius: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        #bot-status {
+            position: fixed;
+            top: 20px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: rgba(255, 255, 255, 0.1);
+            padding: 5px 20px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: bold;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="board-container">
+        <div id="bot-status">Chế độ: Người vs Người</div>
+
+        <!-- Player 2 (Top) -->
+        <div id="card-1" class="player-card p1-color mb-8">
+            <div id="p2-label" class="text-xs uppercase tracking-widest font-bold opacity-60 mb-1">Người chơi 2</div>
+            <div id="score-1" class="text-5xl font-black">0</div>
+        </div>
+
+        <!-- Board -->
+        <div id="board-scaler" class="board-scaler">
+            <div id="board" class="board"></div>
+        </div>
+
+        <!-- Player 1 (Bottom) -->
+        <div id="card-0" class="player-card p0-color mt-8">
+            <div class="text-xs uppercase tracking-widest font-bold opacity-60 mb-1">Người chơi 1</div>
+            <div id="score-0" class="text-5xl font-black">0</div>
+        </div>
+
+        <!-- Controls -->
+        <div class="zoom-control">
+            <span class="text-xs font-bold opacity-50 uppercase">Kích thước</span>
+            <input type="range" id="zoom-slider" min="0.4" max="1.5" step="0.1" value="1" class="w-32 accent-blue-500">
+        </div>
+    </div>
+
+    <!-- Start Menu -->
+    <div id="start-menu" class="modal flex">
+        <div class="modal-content">
+            <h2 class="text-3xl font-black mb-6 text-blue-400">Ô ĂN QUAN</h2>
+            <button class="btn btn-blue" onclick="setupGame('pvp')">CHƠI 2 NGƯỜI</button>
+            <div class="h-[1px] bg-white/10 my-4 w-full"></div>
+            <p class="text-xs opacity-50 mb-3 font-bold uppercase tracking-widest">Thách đấu với Bot</p>
+            <button class="btn bg-emerald-600 text-white" onclick="setupGame('bot-easy')">BOT: DỄ</button>
+            <button class="btn bg-orange-500 text-white" onclick="setupGame('bot-normal')">BOT: BÌNH THƯỜNG</button>
+            <button class="btn bg-rose-600 text-white" onclick="setupGame('bot-hard')">BOT: KHÓ (MINIMAX)</button>
+        </div>
+    </div>
+
+    <!-- Direction Picker -->
+    <div id="dir-modal" class="modal">
+        <div class="modal-content">
+            <h3 class="text-xl font-bold mb-6">Chọn hướng rải quân</h3>
+            <div class="flex gap-4">
+                <button class="btn btn-blue" onclick="handleInputMove(-1)">← TRÁI</button>
+                <button class="btn btn-blue" onclick="handleInputMove(1)">PHẢI →</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Final Score -->
+    <div id="win-overlay" class="modal">
+        <div class="modal-content">
+            <h1 id="winner-text" class="text-4xl font-black mb-6">KẾT QUẢ</h1>
+            <div id="final-stats" class="flex justify-center gap-8 mb-8"></div>
+            <button onclick="location.reload()" class="btn btn-blue">CHƠI LẠI</button>
+        </div>
+    </div>
+
+    <script>
+        let gameState = [];
+        let currentPlayer = 0;
+        let scores = [0, 0];
+        let isMoving = false;
+        let selectedIdx = -1;
+        let gameMode = 'pvp'; // pvp, bot-easy, bot-normal, bot-hard
+
+        const boardEl = document.getElementById('board');
+        const dirModal = document.getElementById('dir-modal');
+        const startMenu = document.getElementById('start-menu');
+        const winOverlay = document.getElementById('win-overlay');
+        const scalerEl = document.getElementById('board-scaler');
+        const zoomSlider = document.getElementById('zoom-slider');
+
+        function setupGame(mode) {
+            gameMode = mode;
+            startMenu.style.display = 'none';
+            document.getElementById('bot-status').innerText = `Chế độ: ${mode.toUpperCase()}`;
+            if (mode.startsWith('bot')) {
+                document.getElementById('p2-label').innerText = `BOT (${mode.split('-')[1].toUpperCase()})`;
+            }
+            init();
+        }
+
+        function init() {
+            gameState = [
+                { type: 'quan', count: 10, owner: -1 }, // 0
+                { type: 'dan', count: 5, owner: 0 },   // 1
+                { type: 'dan', count: 5, owner: 0 },   // 2
+                { type: 'dan', count: 5, owner: 0 },   // 3
+                { type: 'dan', count: 5, owner: 0 },   // 4
+                { type: 'dan', count: 5, owner: 0 },   // 5
+                { type: 'quan', count: 10, owner: -1 }, // 6
+                { type: 'dan', count: 5, owner: 1 },   // 7
+                { type: 'dan', count: 5, owner: 1 },   // 8
+                { type: 'dan', count: 5, owner: 1 },   // 9
+                { type: 'dan', count: 5, owner: 1 },   // 10
+                { type: 'dan', count: 5, owner: 1 }    // 11
+            ];
+            
+            if (window.innerWidth < 700) {
+                zoomSlider.value = 0.7;
+                scalerEl.style.transform = `scale(0.7)`;
+            }
+            render();
+            updateUI();
+        }
+
+        function render() {
+            boardEl.innerHTML = '';
+            const qLeft = createPit(0); qLeft.style.gridColumn = "1"; boardEl.appendChild(qLeft);
+            for (let i = 11; i >= 7; i--) {
+                const p = createPit(i); p.style.gridRow = "1"; p.style.gridColumn = (13 - i).toString(); boardEl.appendChild(p);
+            }
+            const qRight = createPit(6); qRight.style.gridColumn = "7"; boardEl.appendChild(qRight);
+            for (let i = 1; i <= 5; i++) {
+                const p = createPit(i); p.style.gridRow = "2"; p.style.gridColumn = (i + 1).toString(); boardEl.appendChild(p);
+            }
+        }
+
+        function createPit(i) {
+            const pit = gameState[i];
+            const el = document.createElement('div');
+            el.id = `pit-${i}`;
+            const ownerClass = pit.owner === 0 ? 'p0-color' : pit.owner === 1 ? 'p1-color' : '';
+            el.className = `pit ${pit.type === 'quan' ? 'quan' : ''} ${ownerClass}`;
+            el.innerText = pit.count;
+
+            if (!isMoving && pit.owner === currentPlayer && pit.count > 0) {
+                // Nếu là lượt Bot, không cho người chơi nhấn vào hàng của Bot
+                if (gameMode.startsWith('bot') && currentPlayer === 1) return el;
+
+                el.classList.add('playable');
+                el.onclick = () => {
+                    selectedIdx = i;
+                    dirModal.style.display = 'flex';
+                };
+            }
+            return el;
+        }
+
+        async function handleInputMove(dir) {
+            dirModal.style.display = 'none';
+            await executeMove(selectedIdx, dir);
+        }
+
+        async function executeMove(startIdx, dir) {
+            if (isMoving) return;
+            isMoving = true;
+
+            let curr = startIdx;
+            let hand = gameState[curr].count;
+            gameState[curr].count = 0;
+            updateValues();
+
+            while (true) {
+                // Rải quân
+                while (hand > 0) {
+                    curr = (curr + dir + 12) % 12;
+                    gameState[curr].count++;
+                    hand--;
+                    updateValues();
+                    highlight(curr);
+                    await new Promise(r => setTimeout(r, 180));
+                }
+
+                let nxt = (curr + dir + 12) % 12;
+                let anxt = (nxt + dir + 12) % 12;
+
+                if (gameState[nxt].count > 0 && gameState[nxt].type === 'dan') {
+                    hand = gameState[nxt].count;
+                    gameState[nxt].count = 0;
+                    curr = nxt;
+                    updateValues();
+                    await new Promise(r => setTimeout(r, 250));
+                } else if (gameState[nxt].count > 0 && gameState[nxt].type === 'quan') {
+                    break;
+                } else if (gameState[nxt].count === 0) {
+                    if (gameState[anxt].count > 0) {
+                        while (gameState[nxt].count === 0 && gameState[anxt].count > 0) {
+                            scores[currentPlayer] += gameState[anxt].count;
+                            gameState[anxt].count = 0;
+                            updateValues();
+                            const t = document.getElementById(`pit-${anxt}`);
+                            if(t) { t.style.transform = "scale(1.4)"; t.style.background = "white"; }
+                            await new Promise(r => setTimeout(r, 350));
+                            if(t) { t.style.transform = ""; t.style.background = ""; }
+                            nxt = (anxt + dir + 12) % 12;
+                            anxt = (nxt + dir + 12) % 12;
+                            if (gameState[nxt].count !== 0) break;
+                        }
+                        break;
+                    } else { break; }
+                }
+            }
+
+            isMoving = false;
+            currentPlayer = 1 - currentPlayer;
+            
+            // Check mượn nợ
+            if (!checkGameOver()) {
+                handleDebt();
+                updateUI();
+                render();
+
+                // Nếu là lượt Bot
+                if (currentPlayer === 1 && gameMode.startsWith('bot')) {
+                    await new Promise(r => setTimeout(r, 800));
+                    botPlay();
+                }
+            }
+        }
+
+        function handleDebt() {
+            let myStones = gameState.filter(p => p.owner === currentPlayer).reduce((a, b) => a + b.count, 0);
+            if (myStones === 0 && !isAllQuanEmpty()) {
+                scores[currentPlayer] -= 5;
+                gameState.forEach(p => { if(p.owner === currentPlayer) p.count = 1; });
+            }
+        }
+
+        // --- BOT AI LOGIC ---
+        function botPlay() {
+            let move;
+            if (gameMode === 'bot-easy') move = getBotMoveEasy();
+            else if (gameMode === 'bot-normal') move = getBotMoveNormal();
+            else move = getBotMoveHard();
+
+            if (move) {
+                executeMove(move.idx, move.dir);
+            }
+        }
+
+        function getBotMoveEasy() {
+            const validIndices = gameState.map((p, i) => (p.owner === 1 && p.count > 0) ? i : -1).filter(i => i !== -1);
+            if (validIndices.length === 0) return null;
+            const idx = validIndices[Math.floor(Math.random() * validIndices.length)];
+            const dir = Math.random() > 0.5 ? 1 : -1;
+            return { idx, dir };
+        }
+
+        function getBotMoveNormal() {
+            // Greedy: Tìm nước đi có điểm ngay lập tức cao nhất
+            let bestMove = null;
+            let maxPoints = -1;
+            const validIndices = gameState.map((p, i) => (p.owner === 1 && p.count > 0) ? i : -1).filter(i => i !== -1);
+
+            for (let idx of validIndices) {
+                for (let dir of [-1, 1]) {
+                    let pts = simulateMove(gameState, idx, dir).points;
+                    if (pts > maxPoints) {
+                        maxPoints = pts;
+                        bestMove = { idx, dir };
+                    }
+                }
+            }
+            return bestMove || getBotMoveEasy();
+        }
+
+        function getBotMoveHard() {
+            // Minimax giản lược
+            let bestMove = null;
+            let bestScore = -Infinity;
+            const validIndices = gameState.map((p, i) => (p.owner === 1 && p.count > 0) ? i : -1).filter(i => i !== -1);
+
+            for (let idx of validIndices) {
+                for (let dir of [-1, 1]) {
+                    // Giả lập nước đi của Bot
+                    let result = simulateMove(gameState, idx, dir);
+                    let score = result.points;
+
+                    // Trừ điểm dựa trên khả năng người chơi ăn lại sau đó (Lookahead 1)
+                    let opponentMax = 0;
+                    const opIndices = result.newState.map((p, i) => (p.owner === 0 && p.count > 0) ? i : -1).filter(i => i !== -1);
+                    for(let oIdx of opIndices) {
+                        for(let oDir of [-1, 1]) {
+                            opponentMax = Math.max(opponentMax, simulateMove(result.newState, oIdx, oDir).points);
+                        }
+                    }
+                    
+                    score -= (opponentMax * 0.8); // Ưu tiên bảo vệ mình
+
+                    if (score > bestScore) {
+                        bestScore = score;
+                        bestMove = { idx, dir };
+                    }
+                }
+            }
+            return bestMove || getBotMoveNormal();
+        }
+
+        function simulateMove(board, startIdx, dir) {
+            let tempBoard = JSON.parse(JSON.stringify(board));
+            let pts = 0;
+            let curr = startIdx;
+            let hand = tempBoard[curr].count;
+            tempBoard[curr].count = 0;
+
+            let safetyCounter = 0; // Tránh loop vô tận trong giả lập
+            while (safetyCounter < 100) {
+                while (hand > 0) {
+                    curr = (curr + dir + 12) % 12;
+                    tempBoard[curr].count++;
+                    hand--;
+                }
+                let nxt = (curr + dir + 12) % 12;
+                let anxt = (nxt + dir + 12) % 12;
+                if (tempBoard[nxt].count > 0 && tempBoard[nxt].type === 'dan') {
+                    hand = tempBoard[nxt].count;
+                    tempBoard[nxt].count = 0;
+                    curr = nxt;
+                } else if (tempBoard[nxt].count === 0 && tempBoard[anxt].count > 0) {
+                    while (tempBoard[nxt].count === 0 && tempBoard[anxt].count > 0) {
+                        pts += tempBoard[anxt].count;
+                        tempBoard[anxt].count = 0;
+                        nxt = (anxt + dir + 12) % 12;
+                        anxt = (nxt + dir + 12) % 12;
+                        if (tempBoard[nxt].count !== 0) break;
+                    }
+                    break;
+                } else { break; }
+                safetyCounter++;
+            }
+            return { points: pts, newState: tempBoard };
+        }
+
+        // --- UTILS ---
+        function updateUI() {
+            scores.forEach((s, i) => {
+                document.getElementById(`score-${i}`).innerText = s;
+                document.getElementById(`card-${i}`).classList.toggle('active', i === currentPlayer);
+            });
+        }
+
+        function updateValues() {
+            gameState.forEach((p, i) => {
+                const el = document.getElementById(`pit-${i}`);
+                if (el) el.innerText = p.count;
+            });
+            scores.forEach((s, i) => {
+                const el = document.getElementById(`score-${i}`);
+                if (el) el.innerText = s;
+            });
+        }
+
+        function highlight(idx) {
+            const el = document.getElementById(`pit-${idx}`);
+            if (el) { el.style.boxShadow = "0 0 20px white"; setTimeout(() => el.style.boxShadow = "", 150); }
+        }
+
+        function isAllQuanEmpty() { return gameState[0].count === 0 && gameState[6].count === 0; }
+
+        function checkGameOver() {
+            if (isAllQuanEmpty()) {
+                gameState.forEach(p => { if (p.owner !== -1) { scores[p.owner] += p.count; p.count = 0; } });
+                updateValues();
+                const winner = scores[0] > scores[1] ? 0 : scores[1] > scores[0] ? 1 : -1;
+                document.getElementById('winner-text').innerText = winner === -1 ? "HÒA NHAU!" : (gameMode.startsWith('bot') && winner === 1) ? "BOT THẮNG RỒI!" : `NGƯỜI CHƠI ${winner + 1} THẮNG!`;
+                document.getElementById('final-stats').innerHTML = `
+                    <div class="text-center p0-color"><div class="text-5xl font-black">${scores[0]}</div></div>
+                    <div class="text-center p1-color"><div class="text-5xl font-black">${scores[1]}</div></div>
+                `;
+                winOverlay.style.display = 'flex';
+                return true;
+            }
+            return false;
+        }
+
+        zoomSlider.oninput = (e) => scalerEl.style.transform = `scale(${e.target.value})`;
+    </script>
+</body>
+</html>
+
