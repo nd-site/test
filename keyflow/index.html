@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Luyện gõ phím 10 ngón với AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f0f4f8;
+            overflow-x: hidden;
+        }
+
+        .typing-area {
+            font-family: 'JetBrains+Mono', monospace;
+            font-size: 1.5rem;
+            line-height: 2.8rem;
+            letter-spacing: 0.05em;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 0 1px;
+        }
+
+        .char { 
+            border-bottom: 3px solid transparent; 
+            transition: all 0.1s;
+            white-space: pre;
+        }
+        
+        .char.current { border-bottom-color: #3b82f6; background-color: #dbeafe; color: #1e40af; }
+        .char.correct { color: #10b981; }
+        .char.incorrect { color: #ef4444; background-color: #fee2e2; }
+
+        .key {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 0.5rem;
+            height: 3.5rem;
+            font-weight: bold;
+            box-shadow: 0 2px 0 rgba(0,0,0,0.1);
+            transition: transform 0.05s, box-shadow 0.05s;
+            user-select: none;
+            font-size: 0.875rem;
+        }
+
+        .key.active {
+            transform: translateY(2px);
+            box-shadow: none;
+            filter: brightness(0.9);
+            border: 2px solid #3b82f6;
+        }
+
+        .hand-svg { width: 140px; height: 140px; }
+        .finger-highlight { fill: #3b82f6 !important; stroke: #1d4ed8 !important; stroke-width: 2px; }
+
+        /* Custom Dropdown Styles */
+        .custom-select {
+            position: relative;
+            width: 220px;
+        }
+        .select-trigger {
+            background: white;
+            border: 1px solid #e2e8f0;
+            padding: 0.5rem 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+        .select-trigger:hover { border-color: #3b82f6; }
+        .select-options {
+            position: absolute;
+            top: calc(100% + 5px);
+            left: 0;
+            right: 0;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            z-index: 50;
+            display: none;
+            overflow: hidden;
+        }
+        .select-options.show { display: block; }
+        .option {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+        .option:hover { background: #eff6ff; color: #3b82f6; }
+        .option.selected { background: #3b82f6; color: white; }
+    </style>
+</head>
+<body class="p-4 md:p-8">
+
+    <div class="max-w-5xl mx-auto space-y-6">
+        <!-- Header -->
+        <div class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
+            <div class="mb-4 md:mb-0">
+                <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Luyện Gõ 10 Ngón AI</h1>
+                <p class="text-gray-500">Cải thiện tốc độ với văn bản AI</p>
+            </div>
+            <div class="flex flex-wrap gap-4 items-center">
+                <!-- Custom Select UI -->
+                <div class="custom-select" id="customSelect">
+                    <div class="select-trigger" id="selectTrigger">
+                        <span id="selectedValue">Cuộc sống hàng ngày</span>
+                        <svg class="w-4 h-4 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+                    </div>
+                    <div class="select-options" id="selectOptions">
+                        <div class="option selected" data-value="Daily Life and Routines">Cuộc sống hàng ngày</div>
+                        <div class="option" data-value="Technology and Innovation">Công nghệ & Đổi mới</div>
+                        <div class="option" data-value="Business and Professional English">Tiếng Anh công sở</div>
+                        <div class="option" data-value="Science and Nature">Khoa học & Tự nhiên</div>
+                        <div class="option" data-value="Classic Literature snippets">Văn học cổ điển</div>
+                        <div class="option" data-value="Modern Motivation and Wisdom">Động lực & Trí tuệ</div>
+                    </div>
+                </div>
+
+                <button id="generateBtn" class="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition-all shadow-md active:scale-95">
+                    Tạo văn bản AI
+                </button>
+            </div>
+        </div>
+
+        <!-- Display Area -->
+        <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 min-h-[180px] relative overflow-hidden">
+            <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-10">
+                <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-2"></div>
+                <p class="text-blue-600 font-medium">AI đang soạn văn bản...</p>
+            </div>
+            <div id="typingArea" class="typing-area text-gray-300 select-none outline-none" tabindex="0">
+                Nhấn "Tạo văn bản AI" để bắt đầu luyện tập...
+            </div>
+        </div>
+
+        <!-- Visual Guidance -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 items-center">
+            <div class="flex flex-col items-center border-r border-gray-50">
+                <p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">Tay Trái</p>
+                <svg class="hand-svg" viewBox="0 0 100 100">
+                    <path id="L-pinky" fill="#fecdd3" d="M15,50 Q15,30 20,30 Q25,30 25,50 L25,80 L15,80 Z" />
+                    <path id="L-ring" fill="#fef08a" d="M30,40 Q30,20 35,20 Q40,20 40,40 L40,80 L30,80 Z" />
+                    <path id="L-middle" fill="#bbf7d0" d="M45,35 Q45,15 50,15 Q55,15 55,35 L55,80 L45,80 Z" />
+                    <path id="L-pointer" fill="#bfdbfe" d="M60,40 Q60,20 65,20 Q70,20 70,40 L70,80 L60,80 Z" />
+                    <path id="L-thumb" fill="#e5e7eb" d="M75,60 Q85,60 85,70 Q85,80 75,80 L70,80 L70,60 Z" />
+                </svg>
+            </div>
+            
+            <div id="fingerInstruction" class="text-center py-4">
+                <div class="inline-block bg-blue-50 px-8 py-4 rounded-2xl border border-blue-100 shadow-inner">
+                    <p class="text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">Mục tiêu</p>
+                    <p id="targetChar" class="text-5xl font-black text-blue-700">-</p>
+                    <p id="targetFinger" class="text-xs text-blue-400 mt-2 font-medium">Sẵn sàng</p>
+                </div>
+                <div class="flex justify-center gap-8 mt-4">
+                    <div class="text-center">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold">Tốc độ</p>
+                        <p class="text-xl font-bold text-gray-700"><span id="wpmDisplay">0</span> <small class="text-xs font-normal">WPM</small></p>
+                    </div>
+                    <div class="text-center">
+                        <p class="text-[10px] text-gray-400 uppercase font-bold">Chính xác</p>
+                        <p class="text-xl font-bold text-gray-700" id="accDisplay">0%</p>
+                    </div>
+                </div>
+            </div>
+
+            <div class="flex flex-col items-center border-l border-gray-50">
+                <p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">Tay Phải</p>
+                <svg class="hand-svg" viewBox="0 0 100 100">
+                    <path id="R-thumb" fill="#e5e7eb" d="M25,60 Q15,60 15,70 Q15,80 25,80 L30,80 L30,60 Z" />
+                    <path id="R-pointer" fill="#bfdbfe" d="M30,40 Q30,20 35,20 Q40,20 40,40 L40,80 L30,80 Z" />
+                    <path id="R-middle" fill="#bbf7d0" d="M45,35 Q45,15 50,15 Q55,15 55,35 L55,80 L45,80 Z" />
+                    <path id="R-ring" fill="#fef08a" d="M60,40 Q60,20 65,20 Q70,20 70,40 L70,80 L60,80 Z" />
+                    <path id="R-pinky" fill="#fecdd3" d="M75,50 Q75,30 80,30 Q85,30 85,50 L85,80 L75,80 Z" />
+                </svg>
+            </div>
+        </div>
+
+        <!-- Virtual Keyboard (Colors maintained as requested) -->
+        <div id="keyboard" class="bg-gray-800 p-6 rounded-[2rem] shadow-2xl space-y-2 select-none border-b-8 border-gray-900">
+            <!-- Rows are same as previous version... -->
+            <div class="flex gap-1.5 justify-center">
+                <div class="key w-12 bg-pink-200" data-key="`">`</div>
+                <div class="key w-12 bg-pink-200" data-key="1">1</div>
+                <div class="key w-12 bg-yellow-100" data-key="2">2</div>
+                <div class="key w-12 bg-green-100" data-key="3">3</div>
+                <div class="key w-12 bg-blue-100" data-key="4">4</div>
+                <div class="key w-12 bg-blue-100" data-key="5">5</div>
+                <div class="key w-12 bg-blue-100" data-key="6">6</div>
+                <div class="key w-12 bg-blue-100" data-key="7">7</div>
+                <div class="key w-12 bg-green-100" data-key="8">8</div>
+                <div class="key w-12 bg-yellow-100" data-key="9">9</div>
+                <div class="key w-12 bg-pink-200" data-key="0">0</div>
+                <div class="key w-12 bg-pink-200" data-key="-">-</div>
+                <div class="key w-12 bg-pink-200" data-key="=">=</div>
+                <div class="key w-24 bg-gray-500 text-white text-[10px]">BACKSPACE</div>
+            </div>
+            <div class="flex gap-1.5 justify-center">
+                <div class="key w-16 bg-gray-500 text-white text-[10px]">TAB</div>
+                <div class="key w-12 bg-pink-200" data-key="q">Q</div>
+                <div class="key w-12 bg-yellow-100" data-key="w">W</div>
+                <div class="key w-12 bg-green-100" data-key="e">E</div>
+                <div class="key w-12 bg-blue-100" data-key="r">R</div>
+                <div class="key w-12 bg-blue-100" data-key="t">T</div>
+                <div class="key w-12 bg-blue-100" data-key="y">Y</div>
+                <div class="key w-12 bg-blue-100" data-key="u">U</div>
+                <div class="key w-12 bg-green-100" data-key="i">I</div>
+                <div class="key w-12 bg-yellow-100" data-key="o">O</div>
+                <div class="key w-12 bg-pink-200" data-key="p">P</div>
+                <div class="key w-12 bg-pink-200" data-key="[">[</div>
+                <div class="key w-12 bg-pink-200" data-key="]">]</div>
+                <div class="key w-16 bg-pink-200" data-key="\">\</div>
+            </div>
+            <div class="flex gap-1.5 justify-center">
+                <div class="key w-20 bg-gray-500 text-white text-[10px]">CAPS</div>
+                <div class="key w-12 bg-pink-200" data-key="a">A</div>
+                <div class="key w-12 bg-yellow-100" data-key="s">S</div>
+                <div class="key w-12 bg-green-100" data-key="d">D</div>
+                <div class="key w-12 bg-blue-100" data-key="f">F</div>
+                <div class="key w-12 bg-blue-100" data-key="g">G</div>
+                <div class="key w-12 bg-blue-100" data-key="h">H</div>
+                <div class="key w-12 bg-blue-100" data-key="j">J</div>
+                <div class="key w-12 bg-green-100" data-key="k">K</div>
+                <div class="key w-12 bg-yellow-100" data-key="l">L</div>
+                <div class="key w-12 bg-pink-200" data-key=";">;</div>
+                <div class="key w-12 bg-pink-200" data-key="'">'</div>
+                <div class="key w-24 bg-gray-500 text-white text-[10px]">ENTER</div>
+            </div>
+            <div class="flex gap-1.5 justify-center">
+                <div class="key w-28 bg-gray-500 text-white text-[10px]">SHIFT</div>
+                <div class="key w-12 bg-pink-200" data-key="z">Z</div>
+                <div class="key w-12 bg-yellow-100" data-key="x">X</div>
+                <div class="key w-12 bg-green-100" data-key="c">C</div>
+                <div class="key w-12 bg-blue-100" data-key="v">V</div>
+                <div class="key w-12 bg-blue-100" data-key="b">B</div>
+                <div class="key w-12 bg-blue-100" data-key="n">N</div>
+                <div class="key w-12 bg-blue-100" data-key="m">M</div>
+                <div class="key w-12 bg-green-100" data-key=",">,</div>
+                <div class="key w-12 bg-yellow-100" data-key=".">.</div>
+                <div class="key w-12 bg-pink-200" data-key="/">/</div>
+                <div class="key w-32 bg-gray-500 text-white text-[10px]">SHIFT</div>
+            </div>
+            <div class="flex gap-1.5 justify-center">
+                <div class="key w-14 bg-gray-600"></div>
+                <div class="key w-14 bg-gray-600"></div>
+                <div class="key w-14 bg-gray-600"></div>
+                <div class="key w-72 bg-gray-200" data-key=" ">SPACEBAR</div>
+                <div class="key w-14 bg-gray-600"></div>
+                <div class="key w-14 bg-gray-600"></div>
+                <div class="key w-14 bg-gray-600"></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const apiKey = "";
+        const typingArea = document.getElementById('typingArea');
+        const generateBtn = document.getElementById('generateBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const targetCharEl = document.getElementById('targetChar');
+        const targetFingerEl = document.getElementById('targetFinger');
+        const wpmDisplay = document.getElementById('wpmDisplay');
+        const accDisplay = document.getElementById('accDisplay');
+
+        // Custom Dropdown Elements
+        const selectTrigger = document.getElementById('selectTrigger');
+        const selectOptions = document.getElementById('selectOptions');
+        const selectedValueDisplay = document.getElementById('selectedValue');
+        const options = document.querySelectorAll('.option');
+
+        let text = "";
+        let currentIndex = 0;
+        let startTime = null;
+        let errors = 0;
+        let typedCount = 0;
+        let currentTopicValue = "Daily Life and Routines";
+
+        // Toggle custom dropdown
+        selectTrigger.addEventListener('click', (e) => {
+            e.stopPropagation();
+            selectOptions.classList.toggle('show');
+        });
+
+        // Option selection
+        options.forEach(option => {
+            option.addEventListener('click', () => {
+                options.forEach(opt => opt.classList.remove('selected'));
+                option.classList.add('selected');
+                currentTopicValue = option.dataset.value;
+                selectedValueDisplay.innerText = option.innerText;
+                selectOptions.classList.remove('show');
+            });
+        });
+
+        // Close dropdown when clicking outside
+        window.addEventListener('click', () => {
+            selectOptions.classList.remove('show');
+        });
+
+        const fingerMap = {
+            'q': 'L-pinky', 'a': 'L-pinky', 'z': 'L-pinky', '1': 'L-pinky', '`': 'L-pinky',
+            'w': 'L-ring', 's': 'L-ring', 'x': 'L-ring', '2': 'L-ring',
+            'e': 'L-middle', 'd': 'L-middle', 'c': 'L-middle', '3': 'L-middle',
+            'r': 'L-pointer', 'f': 'L-pointer', 'v': 'L-pointer', '4': 'L-pointer', 't': 'L-pointer', 'g': 'L-pointer', 'b': 'L-pointer', '5': 'L-pointer',
+            'y': 'R-pointer', 'h': 'R-pointer', 'n': 'R-pointer', '6': 'R-pointer', 'u': 'R-pointer', 'j': 'R-pointer', 'm': 'R-pointer', '7': 'R-pointer',
+            'i': 'R-middle', 'k': 'R-middle', ',': 'R-middle', '8': 'R-middle',
+            'o': 'R-ring', 'l': 'R-ring', '.': 'R-ring', '9': 'R-ring',
+            'p': 'R-pinky', ';': 'R-pinky', '/': 'R-pinky', '0': 'R-pinky', '-': 'R-pinky', '=': 'R-pinky', '[': 'R-pinky', ']': 'R-pinky', "'": 'R-pinky', '\\': 'R-pinky',
+            ' ': 'L-thumb' 
+        };
+
+        const fingerNames = {
+            'L-pinky': 'Ngón út trái', 'L-ring': 'Ngón áp út trái', 'L-middle': 'Ngón giữa trái', 'L-pointer': 'Ngón trỏ trái', 'L-thumb': 'Ngón cái',
+            'R-pinky': 'Ngón út phải', 'R-ring': 'Ngón áp út phải', 'R-middle': 'Ngón giữa phải', 'R-pointer': 'Ngón trỏ phải', 'R-thumb': 'Ngón cái'
+        };
+
+        async function fetchAIText() {
+            loadingOverlay.classList.remove('hidden');
+            const prompt = `Write a short, engaging paragraph of about 40-50 words in English about the topic: ${currentTopicValue}. Avoid complex symbols, focus on standard alphabets. Return only the text.`;
+
+            try {
+                let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                });
+                
+                let retries = 0;
+                while (!response.ok && retries < 5) {
+                    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, retries)));
+                    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+                    retries++;
+                }
+
+                const data = await response.json();
+                const aiText = data.candidates[0].content.parts[0].text.trim().replace(/\s+/g, ' ');
+                initTyping(aiText);
+                typingArea.focus(); 
+            } catch (error) {
+                initTyping("Lỗi kết nối AI. Vui lòng thử lại hoặc luyện tập với câu mặc định này.");
+            } finally {
+                loadingOverlay.classList.add('hidden');
+            }
+        }
+
+        function initTyping(newText) {
+            text = newText;
+            currentIndex = 0;
+            errors = 0;
+            typedCount = 0;
+            startTime = null;
+            wpmDisplay.innerText = "0";
+            accDisplay.innerText = "0%";
+            
+            typingArea.innerHTML = text.split('').map((char, i) => 
+                `<span class="char ${i === 0 ? 'current' : ''}">${char}</span>`
+            ).join('');
+            
+            updateHighlight();
+        }
+
+        function updateHighlight() {
+            document.querySelectorAll('.hand-svg path').forEach(p => p.classList.remove('finger-highlight'));
+            document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
+
+            if (currentIndex >= text.length) {
+                targetCharEl.innerText = "Xong";
+                targetFingerEl.innerText = "Tuyệt vời!";
+                return;
+            }
+
+            const char = text[currentIndex].toLowerCase();
+            const fingerId = fingerMap[char] || (char === ' ' ? 'L-thumb' : null);
+            
+            targetCharEl.innerText = text[currentIndex] === ' ' ? 'CÁCH' : text[currentIndex];
+
+            if (fingerId) {
+                const svgPart = document.getElementById(fingerId);
+                if (svgPart) svgPart.classList.add('finger-highlight');
+                targetFingerEl.innerText = fingerNames[fingerId];
+                
+                const keyEl = document.querySelector(`.key[data-key="${char}"]`);
+                if (keyEl) keyEl.classList.add('active');
+            } else {
+                targetFingerEl.innerText = "Dùng ngón phù hợp";
+            }
+        }
+
+        window.addEventListener('keydown', (e) => {
+            if (e.key === ' ' || e.code === 'Space') {
+                e.preventDefault();
+            }
+
+            if (currentIndex >= text.length) return;
+            if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Escape'].includes(e.key)) return;
+            if (!startTime && e.key !== 'Backspace') startTime = new Date();
+
+            const chars = typingArea.querySelectorAll('.char');
+
+            if (e.key === 'Backspace') {
+                if (currentIndex > 0) {
+                    chars[currentIndex].classList.remove('current', 'correct', 'incorrect');
+                    currentIndex--;
+                    chars[currentIndex].classList.remove('correct', 'incorrect');
+                    chars[currentIndex].classList.add('current');
+                    updateHighlight();
+                }
+                e.preventDefault();
+                return;
+            }
+
+            const expected = text[currentIndex];
+            const typed = e.key;
+
+            typedCount++;
+            if (typed === expected) {
+                chars[currentIndex].classList.add('correct');
+            } else {
+                chars[currentIndex].classList.add('incorrect');
+                errors++;
+            }
+
+            chars[currentIndex].classList.remove('current');
+            currentIndex++;
+
+            if (currentIndex < text.length) {
+                chars[currentIndex].classList.add('current');
+            }
+
+            updateStats();
+            updateHighlight();
+        });
+
+        function updateStats() {
+            if (!startTime) return;
+            const timeElapsed = (new Date() - startTime) / 60000;
+            const wpm = Math.round((typedCount / 5) / timeElapsed) || 0;
+            const accuracy = Math.round(((typedCount - errors) / typedCount) * 100) || 0;
+
+            wpmDisplay.innerText = wpm;
+            accDisplay.innerText = accuracy + "%";
+        }
+
+        generateBtn.addEventListener('click', fetchAIText);
+
+        window.onload = () => {
+            initTyping("Chào mừng! Nhấn nút 'Tạo văn bản AI' để bắt đầu luyện tập.");
+            document.addEventListener('click', (e) => {
+                // Focus typing area if not clicking on UI controls
+                if (e.target.closest('#customSelect') || e.target.closest('#generateBtn')) return;
+                if (!loadingOverlay.classList.contains('hidden')) return;
+                typingArea.focus();
+            });
+        };
+    </script>
+</body>
+</html>
