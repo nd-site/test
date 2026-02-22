@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Luyện gõ phím 10 ngón với AI</title>
+    <title>KeyFlow - Luyện gõ phím 10 ngón với AI</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&display=swap');
@@ -57,58 +57,43 @@
         .hand-svg { width: 140px; height: 140px; }
         .finger-highlight { fill: #3b82f6 !important; stroke: #1d4ed8 !important; stroke-width: 2px; }
 
-        /* Custom Dropdown Styles */
-        .custom-select {
-            position: relative;
-            width: 220px;
-        }
+        /* Custom Dropdown */
+        .custom-select { position: relative; width: 220px; }
         .select-trigger {
-            background: white;
-            border: 1px solid #e2e8f0;
-            padding: 0.5rem 1rem;
-            border-radius: 0.75rem;
-            cursor: pointer;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            font-weight: 500;
-            transition: all 0.2s;
+            background: white; border: 1px solid #e2e8f0; padding: 0.5rem 1rem;
+            border-radius: 0.75rem; cursor: pointer; display: flex;
+            justify-content: space-between; align-items: center; font-weight: 500;
         }
-        .select-trigger:hover { border-color: #3b82f6; }
         .select-options {
-            position: absolute;
-            top: calc(100% + 5px);
-            left: 0;
-            right: 0;
-            background: white;
-            border: 1px solid #e2e8f0;
-            border-radius: 0.75rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-            z-index: 50;
-            display: none;
-            overflow: hidden;
+            position: absolute; top: calc(100% + 5px); left: 0; right: 0;
+            background: white; border: 1px solid #e2e8f0; border-radius: 0.75rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 50; display: none;
         }
         .select-options.show { display: block; }
-        .option {
-            padding: 0.75rem 1rem;
-            cursor: pointer;
-            transition: background 0.2s;
-        }
+        .option { padding: 0.75rem 1rem; cursor: pointer; }
         .option:hover { background: #eff6ff; color: #3b82f6; }
         .option.selected { background: #3b82f6; color: white; }
+
+        /* Toast message */
+        #apiStatus {
+            position: fixed; bottom: 20px; right: 20px;
+            padding: 12px 20px; border-radius: 10px;
+            display: none; z-index: 100; font-weight: bold;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8">
+
+    <div id="apiStatus"></div>
 
     <div class="max-w-5xl mx-auto space-y-6">
         <!-- Header -->
         <div class="flex flex-col md:flex-row justify-between items-center bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
             <div class="mb-4 md:mb-0">
-                <h1 class="text-3xl font-bold text-gray-800 tracking-tight">Luyện Gõ 10 Ngón AI</h1>
-                <p class="text-gray-500">Cải thiện tốc độ với văn bản AI</p>
+                <h1 class="text-3xl font-bold text-gray-800 tracking-tight">AIType</h1>
+                <p class="text-gray-500">Giao diện luyện gõ phím thông minh</p>
             </div>
             <div class="flex flex-wrap gap-4 items-center">
-                <!-- Custom Select UI -->
                 <div class="custom-select" id="customSelect">
                     <div class="select-trigger" id="selectTrigger">
                         <span id="selectedValue">Cuộc sống hàng ngày</span>
@@ -130,18 +115,18 @@
             </div>
         </div>
 
-        <!-- Display Area -->
+        <!-- Typing Area -->
         <div class="bg-white p-8 rounded-2xl shadow-xl border border-gray-100 min-h-[180px] relative overflow-hidden">
             <div id="loadingOverlay" class="hidden absolute inset-0 bg-white/90 flex flex-col items-center justify-center z-10">
                 <div class="animate-spin rounded-full h-10 w-10 border-b-2 border-blue-600 mb-2"></div>
-                <p class="text-blue-600 font-medium">AI đang soạn văn bản...</p>
+                <p class="text-blue-600 font-medium" id="loadingText">AI đang soạn văn bản...</p>
             </div>
             <div id="typingArea" class="typing-area text-gray-300 select-none outline-none" tabindex="0">
-                Nhấn "Tạo văn bản AI" để bắt đầu luyện tập...
+                Tải văn bản để bắt đầu luyện tập...
             </div>
         </div>
 
-        <!-- Visual Guidance -->
+        <!-- Info & Hands -->
         <div class="grid grid-cols-1 md:grid-cols-3 gap-6 bg-white p-6 rounded-2xl shadow-sm border border-gray-100 items-center">
             <div class="flex flex-col items-center border-r border-gray-50">
                 <p class="text-[10px] font-black text-gray-400 mb-2 uppercase tracking-widest">Tay Trái</p>
@@ -154,19 +139,19 @@
                 </svg>
             </div>
             
-            <div id="fingerInstruction" class="text-center py-4">
-                <div class="inline-block bg-blue-50 px-8 py-4 rounded-2xl border border-blue-100 shadow-inner">
-                    <p class="text-xs text-blue-500 font-bold uppercase tracking-wider mb-1">Mục tiêu</p>
+            <div class="text-center">
+                <div class="inline-block bg-blue-50 px-8 py-4 rounded-2xl border border-blue-100">
+                    <p class="text-xs text-blue-500 font-bold uppercase mb-1">Mục tiêu</p>
                     <p id="targetChar" class="text-5xl font-black text-blue-700">-</p>
                     <p id="targetFinger" class="text-xs text-blue-400 mt-2 font-medium">Sẵn sàng</p>
                 </div>
                 <div class="flex justify-center gap-8 mt-4">
                     <div class="text-center">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold">Tốc độ</p>
-                        <p class="text-xl font-bold text-gray-700"><span id="wpmDisplay">0</span> <small class="text-xs font-normal">WPM</small></p>
+                        <p class="text-[10px] text-gray-400 uppercase font-bold">WPM</p>
+                        <p class="text-xl font-bold text-gray-700" id="wpmDisplay">0</p>
                     </div>
                     <div class="text-center">
-                        <p class="text-[10px] text-gray-400 uppercase font-bold">Chính xác</p>
+                        <p class="text-[10px] text-gray-400 uppercase font-bold">Accuracy</p>
                         <p class="text-xl font-bold text-gray-700" id="accDisplay">0%</p>
                     </div>
                 </div>
@@ -184,9 +169,8 @@
             </div>
         </div>
 
-        <!-- Virtual Keyboard (Colors maintained as requested) -->
-        <div id="keyboard" class="bg-gray-800 p-6 rounded-[2rem] shadow-2xl space-y-2 select-none border-b-8 border-gray-900">
-            <!-- Rows are same as previous version... -->
+        <!-- Keyboard UI -->
+        <div class="bg-gray-800 p-6 rounded-[2rem] shadow-2xl space-y-2 border-b-8 border-gray-900">
             <div class="flex gap-1.5 justify-center">
                 <div class="key w-12 bg-pink-200" data-key="`">`</div>
                 <div class="key w-12 bg-pink-200" data-key="1">1</div>
@@ -199,214 +183,126 @@
                 <div class="key w-12 bg-green-100" data-key="8">8</div>
                 <div class="key w-12 bg-yellow-100" data-key="9">9</div>
                 <div class="key w-12 bg-pink-200" data-key="0">0</div>
-                <div class="key w-12 bg-pink-200" data-key="-">-</div>
-                <div class="key w-12 bg-pink-200" data-key="=">=</div>
                 <div class="key w-24 bg-gray-500 text-white text-[10px]">BACKSPACE</div>
             </div>
             <div class="flex gap-1.5 justify-center">
-                <div class="key w-16 bg-gray-500 text-white text-[10px]">TAB</div>
-                <div class="key w-12 bg-pink-200" data-key="q">Q</div>
-                <div class="key w-12 bg-yellow-100" data-key="w">W</div>
-                <div class="key w-12 bg-green-100" data-key="e">E</div>
-                <div class="key w-12 bg-blue-100" data-key="r">R</div>
-                <div class="key w-12 bg-blue-100" data-key="t">T</div>
-                <div class="key w-12 bg-blue-100" data-key="y">Y</div>
-                <div class="key w-12 bg-blue-100" data-key="u">U</div>
-                <div class="key w-12 bg-green-100" data-key="i">I</div>
-                <div class="key w-12 bg-yellow-100" data-key="o">O</div>
-                <div class="key w-12 bg-pink-200" data-key="p">P</div>
-                <div class="key w-12 bg-pink-200" data-key="[">[</div>
-                <div class="key w-12 bg-pink-200" data-key="]">]</div>
-                <div class="key w-16 bg-pink-200" data-key="\">\</div>
-            </div>
-            <div class="flex gap-1.5 justify-center">
-                <div class="key w-20 bg-gray-500 text-white text-[10px]">CAPS</div>
-                <div class="key w-12 bg-pink-200" data-key="a">A</div>
-                <div class="key w-12 bg-yellow-100" data-key="s">S</div>
-                <div class="key w-12 bg-green-100" data-key="d">D</div>
-                <div class="key w-12 bg-blue-100" data-key="f">F</div>
-                <div class="key w-12 bg-blue-100" data-key="g">G</div>
-                <div class="key w-12 bg-blue-100" data-key="h">H</div>
-                <div class="key w-12 bg-blue-100" data-key="j">J</div>
-                <div class="key w-12 bg-green-100" data-key="k">K</div>
-                <div class="key w-12 bg-yellow-100" data-key="l">L</div>
-                <div class="key w-12 bg-pink-200" data-key=";">;</div>
-                <div class="key w-12 bg-pink-200" data-key="'">'</div>
-                <div class="key w-24 bg-gray-500 text-white text-[10px]">ENTER</div>
-            </div>
-            <div class="flex gap-1.5 justify-center">
-                <div class="key w-28 bg-gray-500 text-white text-[10px]">SHIFT</div>
-                <div class="key w-12 bg-pink-200" data-key="z">Z</div>
-                <div class="key w-12 bg-yellow-100" data-key="x">X</div>
-                <div class="key w-12 bg-green-100" data-key="c">C</div>
-                <div class="key w-12 bg-blue-100" data-key="v">V</div>
-                <div class="key w-12 bg-blue-100" data-key="b">B</div>
-                <div class="key w-12 bg-blue-100" data-key="n">N</div>
-                <div class="key w-12 bg-blue-100" data-key="m">M</div>
-                <div class="key w-12 bg-green-100" data-key=",">,</div>
-                <div class="key w-12 bg-yellow-100" data-key=".">.</div>
-                <div class="key w-12 bg-pink-200" data-key="/">/</div>
-                <div class="key w-32 bg-gray-500 text-white text-[10px]">SHIFT</div>
-            </div>
-            <div class="flex gap-1.5 justify-center">
-                <div class="key w-14 bg-gray-600"></div>
-                <div class="key w-14 bg-gray-600"></div>
-                <div class="key w-14 bg-gray-600"></div>
-                <div class="key w-72 bg-gray-200" data-key=" ">SPACEBAR</div>
-                <div class="key w-14 bg-gray-600"></div>
-                <div class="key w-14 bg-gray-600"></div>
-                <div class="key w-14 bg-gray-600"></div>
+                <div class="key w-72 bg-gray-200" data-key=" ">SPACE</div>
             </div>
         </div>
     </div>
 
     <script>
-        const apiKey = "";
+        /**
+         * API CONFIGURATION
+         */
+        const getApiKey = () => {
+            // Lấy từ tham số URL (?key=...)
+            const urlParams = new URLSearchParams(window.location.search);
+            const keyFromUrl = urlParams.get('key');
+            
+            // Lấy từ biến môi trường (Environment Variable) được inject vào window
+            // Trên GitHub Actions, bạn có thể thực hiện một script thay thế text này trước khi deploy
+            const keyFromEnv = (typeof window.__APP_CONFIG__ !== 'undefined' && window.__APP_CONFIG__.GEMINI_API_KEY) 
+                               ? window.__APP_CONFIG__.GEMINI_API_KEY 
+                               : ""; 
+
+            return keyFromUrl || keyFromEnv || "";
+        };
+
+        const API_KEY = getApiKey();
         const typingArea = document.getElementById('typingArea');
         const generateBtn = document.getElementById('generateBtn');
         const loadingOverlay = document.getElementById('loadingOverlay');
-        const targetCharEl = document.getElementById('targetChar');
-        const targetFingerEl = document.getElementById('targetFinger');
-        const wpmDisplay = document.getElementById('wpmDisplay');
-        const accDisplay = document.getElementById('accDisplay');
+        const statusEl = document.getElementById('apiStatus');
 
-        // Custom Dropdown Elements
-        const selectTrigger = document.getElementById('selectTrigger');
-        const selectOptions = document.getElementById('selectOptions');
-        const selectedValueDisplay = document.getElementById('selectedValue');
-        const options = document.querySelectorAll('.option');
-
+        let currentTopic = "Daily Life and Routines";
         let text = "";
         let currentIndex = 0;
         let startTime = null;
         let errors = 0;
         let typedCount = 0;
-        let currentTopicValue = "Daily Life and Routines";
 
-        // Toggle custom dropdown
-        selectTrigger.addEventListener('click', (e) => {
+        // Custom Select Logic
+        document.getElementById('selectTrigger').onclick = (e) => {
             e.stopPropagation();
-            selectOptions.classList.toggle('show');
-        });
-
-        // Option selection
-        options.forEach(option => {
-            option.addEventListener('click', () => {
-                options.forEach(opt => opt.classList.remove('selected'));
-                option.classList.add('selected');
-                currentTopicValue = option.dataset.value;
-                selectedValueDisplay.innerText = option.innerText;
-                selectOptions.classList.remove('show');
-            });
-        });
-
-        // Close dropdown when clicking outside
-        window.addEventListener('click', () => {
-            selectOptions.classList.remove('show');
-        });
-
-        const fingerMap = {
-            'q': 'L-pinky', 'a': 'L-pinky', 'z': 'L-pinky', '1': 'L-pinky', '`': 'L-pinky',
-            'w': 'L-ring', 's': 'L-ring', 'x': 'L-ring', '2': 'L-ring',
-            'e': 'L-middle', 'd': 'L-middle', 'c': 'L-middle', '3': 'L-middle',
-            'r': 'L-pointer', 'f': 'L-pointer', 'v': 'L-pointer', '4': 'L-pointer', 't': 'L-pointer', 'g': 'L-pointer', 'b': 'L-pointer', '5': 'L-pointer',
-            'y': 'R-pointer', 'h': 'R-pointer', 'n': 'R-pointer', '6': 'R-pointer', 'u': 'R-pointer', 'j': 'R-pointer', 'm': 'R-pointer', '7': 'R-pointer',
-            'i': 'R-middle', 'k': 'R-middle', ',': 'R-middle', '8': 'R-middle',
-            'o': 'R-ring', 'l': 'R-ring', '.': 'R-ring', '9': 'R-ring',
-            'p': 'R-pinky', ';': 'R-pinky', '/': 'R-pinky', '0': 'R-pinky', '-': 'R-pinky', '=': 'R-pinky', '[': 'R-pinky', ']': 'R-pinky', "'": 'R-pinky', '\\': 'R-pinky',
-            ' ': 'L-thumb' 
+            document.getElementById('selectOptions').classList.toggle('show');
         };
 
-        const fingerNames = {
-            'L-pinky': 'Ngón út trái', 'L-ring': 'Ngón áp út trái', 'L-middle': 'Ngón giữa trái', 'L-pointer': 'Ngón trỏ trái', 'L-thumb': 'Ngón cái',
-            'R-pinky': 'Ngón út phải', 'R-ring': 'Ngón áp út phải', 'R-middle': 'Ngón giữa phải', 'R-pointer': 'Ngón trỏ phải', 'R-thumb': 'Ngón cái'
+        document.querySelectorAll('.option').forEach(opt => {
+            opt.onclick = () => {
+                document.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+                opt.classList.add('selected');
+                currentTopic = opt.dataset.value;
+                document.getElementById('selectedValue').innerText = opt.innerText;
+                document.getElementById('selectOptions').classList.remove('show');
+            };
+        });
+
+        const showStatus = (msg, isError = true) => {
+            statusEl.innerText = msg;
+            statusEl.style.display = 'block';
+            statusEl.style.backgroundColor = isError ? '#fee2e2' : '#dcfce7';
+            statusEl.style.color = isError ? '#991b1b' : '#166534';
+            setTimeout(() => statusEl.style.display = 'none', 5000);
         };
 
-        async function fetchAIText() {
+        async function generateAIContent() {
+            if (!API_KEY) {
+                showStatus("Lỗi: Thiếu API Key. Hãy cấu hình biến môi trường hoặc thêm ?key= vào URL.");
+                return;
+            }
+
             loadingOverlay.classList.remove('hidden');
-            const prompt = `Write a short, engaging paragraph of about 40-50 words in English about the topic: ${currentTopicValue}. Avoid complex symbols, focus on standard alphabets. Return only the text.`;
+            const prompt = `Write a 40-word English paragraph about ${currentTopic}. Standard characters only.`;
 
             try {
-                let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                // Sử dụng biến API_KEY đã được xác định từ môi trường hoặc URL
+                let response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${API_KEY}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
-                
-                let retries = 0;
-                while (!response.ok && retries < 5) {
-                    await new Promise(r => setTimeout(r, 1000 * Math.pow(2, retries)));
-                    response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                    });
-                    retries++;
-                }
+
+                if (!response.ok) throw new Error("API call failed");
 
                 const data = await response.json();
-                const aiText = data.candidates[0].content.parts[0].text.trim().replace(/\s+/g, ' ');
-                initTyping(aiText);
-                typingArea.focus(); 
-            } catch (error) {
-                initTyping("Lỗi kết nối AI. Vui lòng thử lại hoặc luyện tập với câu mặc định này.");
+                const content = data.candidates[0].content.parts[0].text.trim().replace(/\s+/g, ' ');
+                startExercise(content);
+            } catch (err) {
+                showStatus("Không thể kết nối với AI. Kiểm tra lại API Key.");
+                startExercise("AI service is currently unavailable. Please check your API configuration and try again.");
             } finally {
                 loadingOverlay.classList.add('hidden');
             }
         }
 
-        function initTyping(newText) {
+        function startExercise(newText) {
             text = newText;
             currentIndex = 0;
             errors = 0;
             typedCount = 0;
             startTime = null;
-            wpmDisplay.innerText = "0";
-            accDisplay.innerText = "0%";
             
             typingArea.innerHTML = text.split('').map((char, i) => 
                 `<span class="char ${i === 0 ? 'current' : ''}">${char}</span>`
             ).join('');
             
-            updateHighlight();
+            document.getElementById('wpmDisplay').innerText = "0";
+            document.getElementById('accDisplay').innerText = "0%";
+            typingArea.focus();
+            updateInstruction();
         }
 
-        function updateHighlight() {
-            document.querySelectorAll('.hand-svg path').forEach(p => p.classList.remove('finger-highlight'));
-            document.querySelectorAll('.key').forEach(k => k.classList.remove('active'));
-
-            if (currentIndex >= text.length) {
-                targetCharEl.innerText = "Xong";
-                targetFingerEl.innerText = "Tuyệt vời!";
-                return;
-            }
-
-            const char = text[currentIndex].toLowerCase();
-            const fingerId = fingerMap[char] || (char === ' ' ? 'L-thumb' : null);
-            
-            targetCharEl.innerText = text[currentIndex] === ' ' ? 'CÁCH' : text[currentIndex];
-
-            if (fingerId) {
-                const svgPart = document.getElementById(fingerId);
-                if (svgPart) svgPart.classList.add('finger-highlight');
-                targetFingerEl.innerText = fingerNames[fingerId];
-                
-                const keyEl = document.querySelector(`.key[data-key="${char}"]`);
-                if (keyEl) keyEl.classList.add('active');
-            } else {
-                targetFingerEl.innerText = "Dùng ngón phù hợp";
-            }
+        function updateInstruction() {
+            const char = text[currentIndex]?.toLowerCase();
+            document.getElementById('targetChar').innerText = text[currentIndex] === ' ' ? '␣' : (text[currentIndex] || '-');
         }
 
         window.addEventListener('keydown', (e) => {
-            if (e.key === ' ' || e.code === 'Space') {
-                e.preventDefault();
-            }
+            if (e.key === ' ' || e.code === 'Space') e.preventDefault();
+            if (currentIndex >= text.length || (e.key.length > 1 && e.key !== 'Backspace')) return;
 
-            if (currentIndex >= text.length) return;
-            if (['Shift', 'Control', 'Alt', 'Meta', 'CapsLock', 'Escape'].includes(e.key)) return;
-            if (!startTime && e.key !== 'Backspace') startTime = new Date();
-
+            if (!startTime) startTime = new Date();
             const chars = typingArea.querySelectorAll('.char');
 
             if (e.key === 'Backspace') {
@@ -415,17 +311,12 @@
                     currentIndex--;
                     chars[currentIndex].classList.remove('correct', 'incorrect');
                     chars[currentIndex].classList.add('current');
-                    updateHighlight();
                 }
-                e.preventDefault();
                 return;
             }
 
-            const expected = text[currentIndex];
-            const typed = e.key;
-
             typedCount++;
-            if (typed === expected) {
+            if (e.key === text[currentIndex]) {
                 chars[currentIndex].classList.add('correct');
             } else {
                 chars[currentIndex].classList.add('incorrect');
@@ -434,35 +325,19 @@
 
             chars[currentIndex].classList.remove('current');
             currentIndex++;
+            if (chars[currentIndex]) chars[currentIndex].classList.add('current');
 
-            if (currentIndex < text.length) {
-                chars[currentIndex].classList.add('current');
-            }
-
-            updateStats();
-            updateHighlight();
+            const time = (new Date() - startTime) / 60000;
+            document.getElementById('wpmDisplay').innerText = Math.round((typedCount / 5) / time) || 0;
+            document.getElementById('accDisplay').innerText = Math.round(((typedCount - errors) / typedCount) * 100) + "%";
+            updateInstruction();
         });
 
-        function updateStats() {
-            if (!startTime) return;
-            const timeElapsed = (new Date() - startTime) / 60000;
-            const wpm = Math.round((typedCount / 5) / timeElapsed) || 0;
-            const accuracy = Math.round(((typedCount - errors) / typedCount) * 100) || 0;
-
-            wpmDisplay.innerText = wpm;
-            accDisplay.innerText = accuracy + "%";
-        }
-
-        generateBtn.addEventListener('click', fetchAIText);
-
+        generateBtn.onclick = generateAIContent;
+        window.onclick = () => document.getElementById('selectOptions').classList.remove('show');
         window.onload = () => {
-            initTyping("Chào mừng! Nhấn nút 'Tạo văn bản AI' để bắt đầu luyện tập.");
-            document.addEventListener('click', (e) => {
-                // Focus typing area if not clicking on UI controls
-                if (e.target.closest('#customSelect') || e.target.closest('#generateBtn')) return;
-                if (!loadingOverlay.classList.contains('hidden')) return;
-                typingArea.focus();
-            });
+            if (!API_KEY) showStatus("Mẹo: Thêm API Key vào môi trường hoặc URL (?key=...) để dùng AI!");
+            startExercise("Welcome to AIType. Use the button above to generate AI content for practice.");
         };
     </script>
 </body>
