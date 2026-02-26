@@ -1,0 +1,323 @@
+<!doctype html>
+<html lang="vi">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Test in ND Labs</title>
+  <meta name="color-scheme" content="light dark" />
+  /logo.png
+  <style>
+    :root{
+      --bg:#0b1f3a;
+      --bg-2:#0e274a;
+      --pri:#1e90ff;
+      --pri-2:#1273d1;
+      --text:#eaf2ff;
+      --muted:#a9c6ff;
+      --card:#12294c;
+      --border:#1e3a6d;
+      --ok:#22c55e;
+      --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{
+      margin:0; font-family:system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,"Helvetica Neue",Arial;
+      background:linear-gradient(180deg,var(--bg),var(--bg-2));
+      color:var(--text);
+    }
+    header{
+      display:flex; align-items:center; gap:12px;
+      padding:16px 20px; border-bottom:1px solid var(--border);
+      background:linear-gradient(180deg,var(--card),transparent);
+      position:sticky; top:0; z-index:10;
+    }
+    header img{width:36px;height:36px;border-radius:8px}
+    header .title{font-weight:700;font-size:18px;letter-spacing:.3px}
+    header nav a{
+      color:var(--muted); text-decoration:none; margin-right:14px; font-weight:500
+    }
+    header nav a:hover{color:#fff}
+    main{max-width:1000px; margin:22px auto; padding:0 16px}
+    .crumbs{margin:8px 0 16px; color:var(--muted); font-size:14px}
+    .crumbs a{color:var(--muted); text-decoration:none}
+    .crumbs a:hover{color:#fff; text-decoration:underline}
+    .panel{
+      background:rgba(18,41,76,.6); border:1px solid var(--border);
+      border-radius:14px; padding:14px;
+      box-shadow:0 8px 28px rgba(0,0,0,.25);
+    }
+    .toolbar{
+      display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:10px;
+    }
+    .search{
+      flex:1; min-width:220px; display:flex; align-items:center; gap:8px;
+      background:#0b1f3a; border:1px solid var(--border); border-radius:10px; padding:10px 12px;
+    }
+    .search input{
+      background:transparent; border:none; outline:none; color:#fff; width:100%;
+    }
+    .badge{font-size:12px; color:#cfe3ff; background:#0b1f3a; border:1px solid var(--border);
+      padding:6px 10px; border-radius:999px}
+    ul.list{list-style:none; margin:0; padding:0}
+    .row{
+      display:grid; grid-template-columns: 32px 1fr 120px 120px; gap:10px;
+      align-items:center; padding:10px 12px; border-radius:10px;
+    }
+    .row:hover{background:#0e274a}
+    .row .icon{font-size:18px; text-align:center}
+    .row a{
+      color:#fff; text-decoration:none; font-weight:600; word-break:break-word
+    }
+    .row a:hover{color:var(--pri)}
+    .meta{color:var(--muted); font-size:13px}
+    .empty, .error{
+      padding:18px; border:1px dashed var(--border); border-radius:12px; margin-top:8px;
+      color:var(--muted)
+    }
+    .footer{
+      margin:20px 0; color:var(--muted); font-size:13px;
+    }
+    .btn{
+      appearance:none; border:1px solid var(--pri); background:linear-gradient(180deg,var(--pri),var(--pri-2));
+      color:#fff; border-radius:10px; padding:8px 12px; cursor:pointer; font-weight:600;
+      box-shadow:0 6px 18px rgba(30,144,255,.35);
+    }
+    .btn:disabled{opacity:.6; cursor:not-allowed}
+    .hint{font-size:12px; color:var(--muted)}
+    @media (max-width:720px){
+      .row{grid-template-columns: 28px 1fr 90px 90px}
+      header .title{display:none}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    //logo.png</a>
+    <div class="title">Test in ND Labs</div>
+    <nav aria-label="Điều hướng">
+      /Trang chủ</a>
+    </nav>
+  </header>
+
+  <main>
+    <div class="crumbs" id="breadcrumbs"></div>
+
+    <section class="panel">
+      <div class="toolbar">
+        <div class="search" title="Lọc theo tên">
+          🔎 <input id="filterInput" placeholder="Tìm file/thư mục... (gõ để lọc)">
+        </div>
+        <span class="badge" id="countBadge">Đang tải…</span>
+        <button class="btn" id="reloadBtn">Tải lại</button>
+      </div>
+
+      <ul class="list" id="list"></ul>
+      <div class="empty" id="empty" hidden>Thư mục trống.</div>
+      <div class="error" id="error" hidden></div>
+      <div class="hint">Mẹo: Click vào thư mục để đi sâu. Dùng ô tìm kiếm để lọc nhanh theo tên.</div>
+    </section>
+
+    <div class="footer">
+      Đang lấy nội dung từ repo GitHub Pages của bạn. Có thể chịu giới hạn 60 yêu cầu/giờ khi không đăng nhập.
+    </div>
+  </main>
+
+  <script>
+    (async function () {
+      // --- Cấu hình tự động cho user site: username.github.io ---
+      const host = location.hostname; // vd: nd-site.github.io
+      const owner = host.split('.')[0]; // "nd-site"
+      const repo = owner + '.github.io'; // "nd-site.github.io"
+      const apiBase = `https://api.github.com/repos/${owner}/${repo}`;
+
+      // Lấy path hiện tại trong repo (thư mục đang xem)
+      // Nếu file này là 404.html, GitHub Pages vẫn giữ nguyên location.pathname => dùng được cho mọi thư mục
+      const cleanPath = (p) => p.replace(/^\/+|\/+$/g, '');
+      // Nếu người dùng truy cập trực tiếp vào 1 file cụ thể thì pathname có đuôi .html/.txt...
+      // Ta chỉ coi là "thư mục" cần liệt kê, nên bỏ tên file cuối nếu có phần mở rộng
+      function getRepoPathFromLocation() {
+        const path = decodeURIComponent(location.pathname);
+        if (!path || path === '/') return '';
+        const trimmed = cleanPath(path);
+        // Nếu kết thúc bằng .xxx => coi là file, lấy thư mục cha
+        if (/\.[a-z0-9]+$/i.test(trimmed)) {
+          const seg = trimmed.split('/');
+          seg.pop();
+          return seg.join('/');
+        }
+        return trimmed;
+      }
+      const repoPath = getRepoPathFromLocation();
+
+      // UI refs
+      const listEl = document.getElementById('list');
+      const emptyEl = document.getElementById('empty');
+      const errorEl = document.getElementById('error');
+      const countBadge = document.getElementById('countBadge');
+      const filterInput = document.getElementById('filterInput');
+      const reloadBtn = document.getElementById('reloadBtn');
+      const crumbsEl = document.getElementById('breadcrumbs');
+
+      function bytesToHuman(n) {
+        if (n == null) return '';
+        if (n < 1024) return n + ' B';
+        const kb = n / 1024;
+        if (kb < 1024) return kb.toFixed(kb < 10 ? 1 : 0) + ' KB';
+        const mb = kb / 1024;
+        return mb.toFixed(mb < 10 ? 1 : 0) + ' MB';
+      }
+
+      function buildCrumbs(path) {
+        const segs = cleanPath(path).split('/').filter(Boolean);
+        const parts = [`//</a>`];
+        let acc = '';
+        for (let i = 0; i < segs.length; i++) {
+          acc += '/' + encodeURIComponent(segs[i]);
+          parts.push(` / <aacc}/${segs[i]}</a>`);
+        }
+        crumbsEl.innerHTML = parts.join('');
+      }
+
+      async function getDefaultBranch() {
+        const resp = await fetch(apiBase);
+        if (!resp.ok) throw new Error('Không lấy được thông tin repo');
+        const data = await resp.json();
+        return data.default_branch || 'main';
+      }
+
+      async function fetchContents(path, ref) {
+        const url = `${apiBase}/contents/${path ? encodeURI(path) : ''}?ref=${encodeURIComponent(ref)}`;
+        const resp = await fetch(url, { headers: { 'Accept': 'application/vnd.github+json' } });
+        if (!resp.ok) {
+          // Hiển thị thông báo chi tiết từ API nếu có
+          let msg = `Lỗi tải nội dung (HTTP ${resp.status})`;
+          try {
+            const j = await resp.json();
+            if (j && j.message) msg += `: ${j.message}`;
+          } catch {}
+          throw new Error(msg);
+        }
+        const data = await resp.json();
+        // API có thể trả object nếu là 1 file, nhưng ta kỳ vọng 1 mảng (thư mục)
+        if (!Array.isArray(data)) {
+          // Nếu truy cập nhầm vào file, quay về thư mục cha
+          return 'IS_FILE';
+        }
+        return data;
+      }
+
+      function render(items, filter='') {
+        listEl.innerHTML = '';
+        errorEl.hidden = true;
+        emptyEl.hidden = true;
+
+        // Ẩn file trang hiện tại (index.html / 404.html) nếu có
+        const currentDoc = (location.pathname.split('/').pop() || '').toLowerCase();
+
+        let filtered = items
+          .filter(it => it && it.name)
+          .filter(it => it.name.toLowerCase().includes(filter.toLowerCase()))
+          .filter(it => {
+            const n = it.name.toLowerCase();
+            return !(n === currentDoc || (n === 'index.html' && currentDoc === '') || n === '404.html');
+          });
+
+        // Sắp xếp: thư mục trước, sau đó theo tên
+        filtered.sort((a,b) => {
+          if (a.type !== b.type) return a.type === 'dir' ? -1 : 1;
+          return a.name.localeCompare(b.name, 'vi', { sensitivity:'base' });
+        });
+
+        countBadge.textContent = `${filtered.length} mục`;
+
+        if (filtered.length === 0) {
+          emptyEl.hidden = false;
+          return;
+        }
+
+        for (const it of filtered) {
+          const li = document.createElement('li');
+          li.className = 'row';
+          const isDir = it.type === 'dir';
+          const icon = isDir ? '📁' : '📄';
+
+          // Link đến đường dẫn public trên Pages
+          const base = '/' + cleanPath(repoPath);
+          const href = (base === '/' ? '' : base) + '/' + encodeURIComponent(it.name) + (isDir ? '/' : '');
+
+          const name = document.createElement('a');
+          name.href = href;
+          name.textContent = it.name;
+
+          const iconSpan = document.createElement('div');
+          iconSpan.className = 'icon';
+          iconSpan.textContent = icon;
+
+          const colName = document.createElement('div');
+          colName.appendChild(name);
+
+          const colType = document.createElement('div');
+          colType.className = 'meta';
+          colType.textContent = isDir ? 'Thư mục' : 'Tệp';
+
+          const colSize = document.createElement('div');
+          colSize.className = 'meta';
+          colSize.textContent = isDir ? '' : bytesToHuman(it.size);
+
+          li.appendChild(iconSpan);
+          li.appendChild(colName);
+          li.appendChild(colType);
+          li.appendChild(colSize);
+          listEl.appendChild(li);
+        }
+      }
+
+      async function load() {
+        countBadge.textContent = 'Đang tải…';
+        listEl.innerHTML = '';
+        emptyEl.hidden = true;
+        errorEl.hidden = true;
+
+        buildCrumbs(repoPath);
+
+        try {
+          const branch = await getDefaultBranch();
+          let contents = await fetchContents(repoPath, branch);
+          // Nếu đang mở đúng URL của một file -> quay về thư mục cha
+          if (contents === 'IS_FILE') {
+            const parts = cleanPath(repoPath).split('/'); parts.pop();
+            const parent = parts.join('/');
+            contents = await fetchContents(parent, branch);
+            buildCrumbs(parent);
+          }
+          render(contents);
+        } catch (e) {
+          errorEl.hidden = false;
+          errorEl.textContent = e.message || 'Đã xảy ra lỗi khi tải nội dung.';
+          countBadge.textContent = '0 mục';
+        }
+      }
+
+      filterInput.addEventListener('input', () => {
+        // Lọc lại mà không gọi API lần nữa: lấy từ DOM hiện tại
+        // Đơn giản: gọi lại load nếu cần filter "chuẩn" theo API; còn ở đây ta lọc sơ bộ bằng cách ẩn/hiện
+        const q = filterInput.value.trim().toLowerCase();
+        const rows = listEl.querySelectorAll('.row');
+        let visible = 0;
+        rows.forEach(r => {
+          const a = r.querySelector('a');
+          const show = a && a.textContent.toLowerCase().includes(q);
+          r.style.display = show ? '' : 'none';
+          if (show) visible++;
+        });
+        countBadge.textContent = `${visible} mục`;
+        emptyEl.hidden = visible !== 0;
+      });
+
+      reloadBtn.addEventListener('click', load);
+
+      await load();
+    })();
+  </script>
+</body>
+</html>
